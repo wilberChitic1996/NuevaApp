@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Vector launcher foreground: a golden crescent moon cradling a small white spirit
+  dot — the Cadejo watching over the night. Drawn in code (no bitmap assets) and
+  sized to the 108dp adaptive-icon canvas with the usual safe margins.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Crescent moon (gold): outer circle minus an offset inner circle. -->
+    <path
+        android:fillColor="#E0A500"
+        android:pathData="M54,30
+            a24,24 0 1,0 0,48
+            a24,24 0 1,1 0,-48 Z
+            M62,30
+            a24,24 0 1,0 0,48
+            a20,20 0 1,1 0,-48 Z"
+        android:fillType="evenOdd" />
+
+    <!-- White spirit dot. -->
+    <path
+        android:fillColor="#F5F3FF"
+        android:pathData="M48,54 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 Z" />
+</vector>

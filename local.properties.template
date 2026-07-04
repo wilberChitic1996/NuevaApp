@@ -1,0 +1,24 @@
+# Copy this file to `local.properties` and fill in real values.
+# `local.properties` is git-ignored and MUST NEVER be committed.
+#
+# The only required entry for building is the Android SDK location:
+sdk.dir=/path/to/your/Android/sdk
+
+# ---------------------------------------------------------------------------
+# Sensitive configuration (injected into BuildConfig at build time; see
+# app/build.gradle.kts). In CI these come from GitHub Actions secrets instead.
+# Leave blank for local debug builds that don't hit these services.
+# ---------------------------------------------------------------------------
+
+# Supabase (daily leaderboard backend — added in Phase 4)
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
+
+# AdMob (Phase 5). Use Google's official test IDs during development.
+ADMOB_APP_ID=ca-app-pub-3940256099942544~3347511713
+
+# Release signing (Phase 6). Path is relative to the repo root.
+RELEASE_STORE_FILE=
+RELEASE_STORE_PASSWORD=
+RELEASE_KEY_ALIAS=
+RELEASE_KEY_PASSWORD=

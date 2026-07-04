@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Base platform theme (no Material Components XML dependency needed — all UI is
+      Jetpack Compose). Transparent system bars support edge-to-edge; the dark
+      window background prevents a white flash before Compose draws.
+    -->
+    <style name="Theme.Cadejo" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/night_deep</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>
