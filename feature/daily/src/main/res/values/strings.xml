@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_title">Daily · %1$s</string>
+    <string name="daily_back">Back</string>
+    <string name="daily_leaderboard">Leaderboard</string>
+    <string name="daily_backend_off">Leaderboard offline (backend not configured).</string>
+    <string name="daily_submitting">Submitting score…</string>
+    <string name="daily_submitted">Score submitted!</string>
+    <string name="daily_submit_error">Rejected: %1$s</string>
+    <string name="daily_no_scores">No scores yet today.</string>
+</resources>

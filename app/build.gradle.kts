@@ -1,8 +1,18 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.cadejo.android.application)
     alias(libs.plugins.cadejo.android.compose)
     alias(libs.plugins.cadejo.android.hilt)
 }
+
+// Read sensitive config from local.properties (git-ignored) or, in CI, from
+// environment variables. NEVER hardcoded, NEVER committed.
+val secrets = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+fun secret(key: String): String = (secrets.getProperty(key) ?: System.getenv(key) ?: "")
 
 android {
     namespace = "gt.guardian.cadejo"
@@ -11,6 +21,11 @@ android {
         applicationId = "gt.guardian.cadejo"
         versionCode = 1
         versionName = "0.1.0"
+
+        // Injected into BuildConfig at build time; blank in dev => features that
+        // need them (leaderboard) simply stay disabled.
+        buildConfigField("String", "SUPABASE_URL", "\"${secret("SUPABASE_URL")}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${secret("SUPABASE_ANON_KEY")}\"")
     }
 
     buildTypes {

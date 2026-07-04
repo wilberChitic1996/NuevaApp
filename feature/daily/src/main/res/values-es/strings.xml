@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_title">Diario · %1$s</string>
+    <string name="daily_back">Volver</string>
+    <string name="daily_leaderboard">Tabla de posiciones</string>
+    <string name="daily_backend_off">Tabla sin conexión (backend no configurado).</string>
+    <string name="daily_submitting">Enviando puntaje…</string>
+    <string name="daily_submitted">¡Puntaje enviado!</string>
+    <string name="daily_submit_error">Rechazado: %1$s</string>
+    <string name="daily_no_scores">Aún no hay puntajes hoy.</string>
+</resources>

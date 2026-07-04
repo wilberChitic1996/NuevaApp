@@ -4,10 +4,14 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import gt.guardian.cadejo.core.data.daily.DailyDateProvider
+import gt.guardian.cadejo.core.data.daily.SupabaseLeaderboardRepository
 import gt.guardian.cadejo.core.data.progress.RoomProgressRepository
 import gt.guardian.cadejo.core.data.save.KeystoreHmacSigner
 import gt.guardian.cadejo.core.data.session.SystemSeedSource
 import gt.guardian.cadejo.core.data.settings.DataStoreSettingsRepository
+import gt.guardian.cadejo.domain.daily.DateProvider
+import gt.guardian.cadejo.domain.daily.LeaderboardRepository
 import gt.guardian.cadejo.domain.integrity.Signer
 import gt.guardian.cadejo.domain.progress.ProgressRepository
 import gt.guardian.cadejo.domain.session.SeedSource
@@ -38,4 +42,11 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindSettingsRepository(impl: DataStoreSettingsRepository): SettingsRepository
+
+    @Binds
+    abstract fun bindDateProvider(impl: DailyDateProvider): DateProvider
+
+    @Binds
+    @Singleton
+    abstract fun bindLeaderboardRepository(impl: SupabaseLeaderboardRepository): LeaderboardRepository
 }
