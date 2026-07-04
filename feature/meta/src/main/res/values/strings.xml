@@ -10,6 +10,9 @@
     <string name="shop_active">Active</string>
     <string name="shop_back">Back</string>
 
+    <string name="shop_remove_ads">Remove ads</string>
+    <string name="shop_ads_removed">Removed ✓</string>
+
     <string name="shop_feedback_bought">Unlocked!</string>
     <string name="shop_feedback_owned">Already owned.</string>
     <string name="shop_feedback_poor">Not enough coins.</string>

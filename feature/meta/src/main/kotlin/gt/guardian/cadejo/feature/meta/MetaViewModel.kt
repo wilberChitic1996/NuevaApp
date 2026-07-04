@@ -3,6 +3,8 @@ package gt.guardian.cadejo.feature.meta
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import gt.guardian.cadejo.domain.monetization.BillingRepository
+import gt.guardian.cadejo.domain.monetization.ProductIds
 import gt.guardian.cadejo.domain.progress.PlayerProfile
 import gt.guardian.cadejo.domain.progress.ProgressRepository
 import gt.guardian.cadejo.domain.progress.PurchaseResult
@@ -21,6 +23,7 @@ enum class ShopFeedback { BOUGHT, ALREADY_OWNED, NOT_ENOUGH_COINS }
 @HiltViewModel
 class MetaViewModel @Inject constructor(
     private val progress: ProgressRepository,
+    private val billing: BillingRepository,
 ) : ViewModel() {
 
     val profile: StateFlow<PlayerProfile> = progress.profile.stateIn(
@@ -44,6 +47,11 @@ class MetaViewModel @Inject constructor(
 
     fun equip(id: UnlockId?) {
         viewModelScope.launch { progress.selectSkin(id) }
+    }
+
+    /** Launch the "remove ads" IAP; the entitlement flips adsRemoved on success. */
+    fun removeAds() {
+        viewModelScope.launch { billing.purchase(ProductIds.REMOVE_ADS) }
     }
 
     fun clearFeedback() {

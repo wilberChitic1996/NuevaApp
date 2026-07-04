@@ -51,6 +51,8 @@ fun GameRoute(modifier: Modifier = Modifier) {
         onToggleLeap = viewModel::onToggleLeap,
         onProtect = viewModel::onProtect,
         onRestart = viewModel::onRestart,
+        onRevive = viewModel::onReviveWithAd,
+        onDoubleCoins = viewModel::onDoubleCoinsWithAd,
     )
 }
 
@@ -59,12 +61,15 @@ fun GameScreen(
     ui: GameUiState,
     modifier: Modifier = Modifier,
     colorblind: Boolean = false,
+    showAdActions: Boolean = true,
     onHexTap: (gt.guardian.cadejo.domain.hex.Hex) -> Unit = {},
     onWait: () -> Unit = {},
     onHowl: () -> Unit = {},
     onToggleLeap: () -> Unit = {},
     onProtect: () -> Unit = {},
     onRestart: () -> Unit = {},
+    onRevive: () -> Unit = {},
+    onDoubleCoins: () -> Unit = {},
 ) {
     val run = ui.run
     val game = run.current
@@ -87,6 +92,26 @@ fun GameScreen(
             )
 
             RunBanner(run.status, game.score)
+
+            if (showAdActions && (ui.canRevive || ui.canDoubleCoins)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    if (ui.canRevive) {
+                        OutlinedButton(
+                            onClick = onRevive,
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                        ) { Text(stringResource(R.string.game_revive)) }
+                    }
+                    if (ui.canDoubleCoins) {
+                        OutlinedButton(
+                            onClick = onDoubleCoins,
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                        ) { Text(stringResource(R.string.game_double_coins)) }
+                    }
+                }
+            }
 
             Spacer(Modifier.heightIn(min = 8.dp))
 

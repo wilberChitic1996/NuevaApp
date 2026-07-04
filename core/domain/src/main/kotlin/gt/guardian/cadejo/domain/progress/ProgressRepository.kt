@@ -15,6 +15,9 @@ interface ProgressRepository {
     /** Pay out a finished run: add coins, bump stats, append to history. Returns the new profile. */
     suspend fun awardRun(record: RunRecord): PlayerProfile
 
+    /** Add coins directly (e.g. a rewarded "double coins" ad). Returns the new profile. */
+    suspend fun addCoins(amount: Long): PlayerProfile
+
     /** Attempt to buy an unlock with coins. */
     suspend fun purchase(id: UnlockId): PurchaseResult
 

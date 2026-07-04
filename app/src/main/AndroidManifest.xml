@@ -2,10 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
-      Phase 1 requests ZERO permissions — the game is fully offline. INTERNET and
-      ACCESS_NETWORK_STATE are added only when the leaderboard (Phase 4) and ads
-      (Phase 5) arrive. No dangerous permissions are ever requested.
+      Only non-dangerous permissions: internet + network state for the leaderboard
+      and ads. No location, storage, contacts, camera, etc. — nothing dangerous.
     -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:name=".CadejoApplication"
@@ -15,6 +16,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Cadejo">
+
+        <!-- AdMob application id (test id by default; real id via ADMOB_APP_ID secret). -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
 
         <activity
             android:name=".MainActivity"

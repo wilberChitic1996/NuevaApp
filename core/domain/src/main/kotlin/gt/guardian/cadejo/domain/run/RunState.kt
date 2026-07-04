@@ -21,6 +21,8 @@ data class RunState(
     val status: RunStatus = RunStatus.RUNNING,
     val mode: RunMode = RunMode.ROGUE,
     val intents: List<Intent> = emptyList(),
+    /** How many times a rewarded revive has been used this run (capped in the UI). */
+    val revivesUsed: Int = 0,
 ) {
     /** Total accumulated score (carried through completed levels). */
     val score: Int get() = current.score

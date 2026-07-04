@@ -10,6 +10,9 @@
     <string name="shop_active">Activo</string>
     <string name="shop_back">Volver</string>
 
+    <string name="shop_remove_ads">Quitar anuncios</string>
+    <string name="shop_ads_removed">Quitados ✓</string>
+
     <string name="shop_feedback_bought">¡Desbloqueado!</string>
     <string name="shop_feedback_owned">Ya lo tenés.</string>
     <string name="shop_feedback_poor">Monedas insuficientes.</string>

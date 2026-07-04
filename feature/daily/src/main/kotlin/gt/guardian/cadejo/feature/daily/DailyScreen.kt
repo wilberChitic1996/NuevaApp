@@ -58,6 +58,8 @@ fun DailyRoute(onBack: () -> Unit = {}, modifier: Modifier = Modifier) {
             GameScreen(
                 ui = ui,
                 modifier = Modifier.weight(1f),
+                // No revive in daily: it would break the replay tape the server validates.
+                showAdActions = false,
                 onHexTap = viewModel::onHexTap,
                 onWait = viewModel::onWait,
                 onHowl = viewModel::onHowl,

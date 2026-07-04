@@ -46,6 +46,13 @@ class RoomProgressRepository @Inject constructor(
         updated
     }
 
+    override suspend fun addCoins(amount: Long): PlayerProfile = writeLock.withLock {
+        val current = currentProfile()
+        val updated = current.copy(coins = (current.coins + amount).coerceAtLeast(0))
+        persist(updated)
+        updated
+    }
+
     override suspend fun purchase(id: UnlockId): PurchaseResult = writeLock.withLock {
         when (val result = ProgressLogic.purchase(currentProfile(), id)) {
             is PurchaseResult.Success -> {

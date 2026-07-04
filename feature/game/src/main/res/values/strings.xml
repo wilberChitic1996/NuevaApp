@@ -13,6 +13,9 @@
     <string name="run_completed">Run complete! %1$d pts</string>
     <string name="run_failed">The night claimed you… %1$d pts</string>
 
+    <string name="game_revive">Revive (ad)</string>
+    <string name="game_double_coins">Double coins (ad)</string>
+
     <string name="game_status_won">The traveler is safe!</string>
     <string name="game_status_lost">The night claimed you…</string>
 </resources>

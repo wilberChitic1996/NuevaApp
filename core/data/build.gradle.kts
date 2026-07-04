@@ -26,5 +26,12 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.coroutines.android)
 
+    // Monetization SDKs
+    implementation(libs.play.services.ads)
+    implementation(libs.billing.ktx)
+    implementation(libs.user.messaging.platform)
+
+    implementation(libs.timber)
+
     testImplementation(libs.kotlinx.coroutines.test)
 }

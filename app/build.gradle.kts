@@ -26,6 +26,11 @@ android {
         // need them (leaderboard) simply stay disabled.
         buildConfigField("String", "SUPABASE_URL", "\"${secret("SUPABASE_URL")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${secret("SUPABASE_ANON_KEY")}\"")
+
+        // AdMob application id goes into the manifest via a placeholder. Defaults to
+        // Google's official TEST app id so dev builds never hit a real account.
+        val admobAppId = secret("ADMOB_APP_ID").ifBlank { "ca-app-pub-3940256099942544~3347511713" }
+        manifestPlaceholders["admobAppId"] = admobAppId
     }
 
     buildTypes {
@@ -61,5 +66,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.hilt.navigation.compose)
     implementation(libs.timber)
 }

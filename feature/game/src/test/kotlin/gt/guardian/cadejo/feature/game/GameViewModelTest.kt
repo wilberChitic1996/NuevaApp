@@ -2,6 +2,8 @@ package gt.guardian.cadejo.feature.game
 
 import app.cash.turbine.test
 import gt.guardian.cadejo.domain.model.AbilityId
+import gt.guardian.cadejo.domain.monetization.RewardOutcome
+import gt.guardian.cadejo.domain.monetization.RewardedAdService
 import gt.guardian.cadejo.domain.progress.PlayerProfile
 import gt.guardian.cadejo.domain.progress.ProgressRepository
 import gt.guardian.cadejo.domain.progress.PurchaseResult
@@ -34,14 +36,20 @@ class GameViewModelTest {
     private val fakeProgress = object : ProgressRepository {
         override val profile: Flow<PlayerProfile> = flowOf(PlayerProfile.INITIAL)
         override suspend fun awardRun(record: RunRecord): PlayerProfile = PlayerProfile.INITIAL
+        override suspend fun addCoins(amount: Long): PlayerProfile = PlayerProfile.INITIAL
         override suspend fun purchase(id: UnlockId): PurchaseResult = PurchaseResult.AlreadyOwned
         override suspend fun selectSkin(id: UnlockId?) {}
         override suspend fun setAdsRemoved(removed: Boolean) {}
         override fun recentRuns(limit: Int): Flow<List<RunRecord>> = flowOf(emptyList())
     }
 
+    private val fakeAds = object : RewardedAdService {
+        override fun preload() {}
+        override suspend fun showRewarded(): RewardOutcome = RewardOutcome.UNAVAILABLE
+    }
+
     // Fixed seed => deterministic starting run, so assertions are stable.
-    private fun viewModel(seed: Long = 777L) = GameViewModel(SeedSource { seed }, fakeProgress)
+    private fun viewModel(seed: Long = 777L) = GameViewModel(SeedSource { seed }, fakeProgress, fakeAds)
 
     @Test
     fun `starts running on level one`() = runTest {

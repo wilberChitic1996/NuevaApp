@@ -61,4 +61,20 @@ object RunEngine {
      */
     fun replay(seed: Long, intents: List<Intent>, mode: RunMode = RunMode.ROGUE): RunState =
         intents.fold(newRun(seed, mode)) { run, intent -> apply(run, intent) }
+
+    /**
+     * Revive a failed run by regenerating the current level fresh (same index,
+     * keeping the accumulated score). Used after a rewarded ad. No-op unless the
+     * run has actually failed. NOTE: reviving breaks the replay tape, so revived
+     * runs are ineligible for the server-validated leaderboard by design.
+     */
+    fun revive(run: RunState): RunState {
+        if (run.status != RunStatus.FAILED) return run
+        val fresh = LevelGenerator.generate(
+            seed = run.seed,
+            levelIndex = run.levelIndex,
+            startingScore = run.current.score,
+        )
+        return run.copy(current = fresh, status = RunStatus.RUNNING, revivesUsed = run.revivesUsed + 1)
+    }
 }

@@ -43,6 +43,7 @@ fun ShopRoute(onBack: () -> Unit = {}, modifier: Modifier = Modifier) {
         modifier = modifier,
         onBuy = viewModel::buy,
         onEquip = viewModel::equip,
+        onRemoveAds = viewModel::removeAds,
         onDismissFeedback = viewModel::clearFeedback,
         onBack = onBack,
     )
@@ -55,6 +56,7 @@ fun ShopScreen(
     modifier: Modifier = Modifier,
     onBuy: (UnlockId) -> Unit = {},
     onEquip: (UnlockId?) -> Unit = {},
+    onRemoveAds: () -> Unit = {},
     onDismissFeedback: () -> Unit = {},
     onBack: () -> Unit = {},
 ) {
@@ -87,6 +89,27 @@ fun ShopScreen(
             }
 
             Spacer(Modifier.heightIn(min = 8.dp))
+
+            // Remove-ads IAP (a one-time purchase, verified by Play Billing).
+            Card(
+                colors = CardDefaults.cardColors(containerColor = CadejoColors.NightMid),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(stringResource(R.string.shop_remove_ads), color = CadejoColors.OnNight, fontWeight = FontWeight.Bold)
+                    if (profile.adsRemoved) {
+                        Text(stringResource(R.string.shop_ads_removed), color = CadejoColors.GoldSoft)
+                    } else {
+                        Button(onClick = onRemoveAds, modifier = Modifier.heightIn(min = 48.dp)) {
+                            Text(stringResource(R.string.shop_buy))
+                        }
+                    }
+                }
+            }
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.weight(1f)) {
                 items(UnlockId.entries.toList(), key = { it.name }) { unlock ->
