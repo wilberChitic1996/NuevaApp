@@ -11,17 +11,20 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PatternsTest {
-
-    private fun state(lastStep: Hex? = null, enemy: Enemy) = GameState(
-        board = Board.hexagon(4),
-        player = Hex(0, 0),
-        traveler = Hex(0, 1),
-        enemies = listOf(enemy),
-        goal = Hex(3, 0),
-        seed = 0,
-        rngState = 0,
-        lastPlayerStep = lastStep,
-    )
+    private fun state(
+        lastStep: Hex? = null,
+        enemy: Enemy,
+    ) =
+        GameState(
+            board = Board.hexagon(4),
+            player = Hex(0, 0),
+            traveler = Hex(0, 1),
+            enemies = listOf(enemy),
+            goal = Hex(3, 0),
+            seed = 0,
+            rngState = 0,
+            lastPlayerStep = lastStep,
+        )
 
     @Test
     fun `mirror repeats the player's last step direction`() {

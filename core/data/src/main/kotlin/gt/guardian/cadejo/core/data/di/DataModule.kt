@@ -32,7 +32,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class DataModule {
-
     @Binds
     @Singleton
     abstract fun bindSeedSource(impl: SystemSeedSource): SeedSource

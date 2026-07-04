@@ -1,0 +1,57 @@
+# Detekt configuration for Cadejo. Builds upon the default rules and relaxes the
+# ones that are noisy for a game codebase (balance constants, board math, Compose).
+# Tighten these over time.
+
+complexity:
+  LongMethod:
+    active: true
+    threshold: 80
+  LongParameterList:
+    active: false
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 25
+  TooManyFunctions:
+    active: false
+  NestedBlockDepth:
+    active: true
+    threshold: 6
+
+style:
+  MagicNumber:
+    active: false
+  ReturnCount:
+    active: false
+  MaxLineLength:
+    active: false
+  UnusedPrivateMember:
+    active: true
+  UnusedParameter:
+    # Composable/public API signatures intentionally carry params used by callers.
+    active: false
+  ForbiddenComment:
+    active: false
+  LoopWithTooManyJumpStatements:
+    active: false
+
+empty-blocks:
+  EmptyFunctionBlock:
+    # No-op lifecycle-callback overrides (adapter pattern) are intentional.
+    active: false
+
+naming:
+  MatchingDeclarationName:
+    # Files intentionally group related declarations (e.g. Color.kt -> CadejoColors).
+    active: false
+  FunctionNaming:
+    # Compose @Composable functions are PascalCase; allow it.
+    ignoreAnnotated: ['Composable']
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+  SwallowedException:
+    active: false
+
+comments:
+  active: false

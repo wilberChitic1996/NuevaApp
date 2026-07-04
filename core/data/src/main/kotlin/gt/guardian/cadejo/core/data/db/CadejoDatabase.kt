@@ -16,6 +16,7 @@ import androidx.room.RoomDatabase
 )
 abstract class CadejoDatabase : RoomDatabase() {
     abstract fun profileDao(): ProfileDao
+
     abstract fun runHistoryDao(): RunHistoryDao
 
     companion object {

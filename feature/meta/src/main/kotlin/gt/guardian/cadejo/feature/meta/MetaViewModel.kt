@@ -25,23 +25,24 @@ class MetaViewModel @Inject constructor(
     private val progress: ProgressRepository,
     private val billing: BillingRepository,
 ) : ViewModel() {
-
-    val profile: StateFlow<PlayerProfile> = progress.profile.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = PlayerProfile.INITIAL,
-    )
+    val profile: StateFlow<PlayerProfile> =
+        progress.profile.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = PlayerProfile.INITIAL,
+        )
 
     private val _feedback = MutableStateFlow<ShopFeedback?>(null)
     val feedback: StateFlow<ShopFeedback?> = _feedback.asStateFlow()
 
     fun buy(id: UnlockId) {
         viewModelScope.launch {
-            _feedback.value = when (progress.purchase(id)) {
-                is PurchaseResult.Success -> ShopFeedback.BOUGHT
-                PurchaseResult.AlreadyOwned -> ShopFeedback.ALREADY_OWNED
-                PurchaseResult.InsufficientCoins -> ShopFeedback.NOT_ENOUGH_COINS
-            }
+            _feedback.value =
+                when (progress.purchase(id)) {
+                    is PurchaseResult.Success -> ShopFeedback.BOUGHT
+                    PurchaseResult.AlreadyOwned -> ShopFeedback.ALREADY_OWNED
+                    PurchaseResult.InsufficientCoins -> ShopFeedback.NOT_ENOUGH_COINS
+                }
         }
     }
 

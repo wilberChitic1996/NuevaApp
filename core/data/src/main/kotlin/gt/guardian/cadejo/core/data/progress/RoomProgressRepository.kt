@@ -28,48 +28,53 @@ class RoomProgressRepository @Inject constructor(
     private val runHistoryDao: RunHistoryDao,
     private val signer: Signer,
 ) : ProgressRepository {
-
     private val writeLock = Mutex()
 
-    override val profile: Flow<PlayerProfile> = profileDao.observe().map { entity ->
-        entity?.let { ProfileMapper.toDomainVerified(it, signer) } ?: PlayerProfile.INITIAL
-    }
+    override val profile: Flow<PlayerProfile> =
+        profileDao.observe().map { entity ->
+            entity?.let { ProfileMapper.toDomainVerified(it, signer) } ?: PlayerProfile.INITIAL
+        }
 
     override fun recentRuns(limit: Int): Flow<List<RunRecord>> =
         runHistoryDao.recent(limit).map { rows -> rows.map(ProfileMapper::toDomain) }
 
-    override suspend fun awardRun(record: RunRecord): PlayerProfile = writeLock.withLock {
-        val current = currentProfile()
-        val updated = ProgressLogic.award(current, record)
-        persist(updated)
-        runHistoryDao.insert(ProfileMapper.toEntity(record, System.currentTimeMillis()))
-        updated
-    }
-
-    override suspend fun addCoins(amount: Long): PlayerProfile = writeLock.withLock {
-        val current = currentProfile()
-        val updated = current.copy(coins = (current.coins + amount).coerceAtLeast(0))
-        persist(updated)
-        updated
-    }
-
-    override suspend fun purchase(id: UnlockId): PurchaseResult = writeLock.withLock {
-        when (val result = ProgressLogic.purchase(currentProfile(), id)) {
-            is PurchaseResult.Success -> {
-                persist(result.profile)
-                result
-            }
-            else -> result
+    override suspend fun awardRun(record: RunRecord): PlayerProfile =
+        writeLock.withLock {
+            val current = currentProfile()
+            val updated = ProgressLogic.award(current, record)
+            persist(updated)
+            runHistoryDao.insert(ProfileMapper.toEntity(record, System.currentTimeMillis()))
+            updated
         }
-    }
 
-    override suspend fun selectSkin(id: UnlockId?) = writeLock.withLock {
-        persist(ProgressLogic.selectSkin(currentProfile(), id))
-    }
+    override suspend fun addCoins(amount: Long): PlayerProfile =
+        writeLock.withLock {
+            val current = currentProfile()
+            val updated = current.copy(coins = (current.coins + amount).coerceAtLeast(0))
+            persist(updated)
+            updated
+        }
 
-    override suspend fun setAdsRemoved(removed: Boolean) = writeLock.withLock {
-        persist(currentProfile().copy(adsRemoved = removed))
-    }
+    override suspend fun purchase(id: UnlockId): PurchaseResult =
+        writeLock.withLock {
+            when (val result = ProgressLogic.purchase(currentProfile(), id)) {
+                is PurchaseResult.Success -> {
+                    persist(result.profile)
+                    result
+                }
+                else -> result
+            }
+        }
+
+    override suspend fun selectSkin(id: UnlockId?) =
+        writeLock.withLock {
+            persist(ProgressLogic.selectSkin(currentProfile(), id))
+        }
+
+    override suspend fun setAdsRemoved(removed: Boolean) =
+        writeLock.withLock {
+            persist(currentProfile().copy(adsRemoved = removed))
+        }
 
     /** Read the trusted current profile, creating a signed default row if none exists yet. */
     private suspend fun currentProfile(): PlayerProfile {

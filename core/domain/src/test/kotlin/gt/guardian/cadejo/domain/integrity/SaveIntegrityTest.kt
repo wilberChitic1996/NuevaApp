@@ -11,16 +11,18 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 class SaveIntegrityTest {
-
     // A plain HMAC signer stands in for the Android Keystore in JVM tests.
     private val goodSigner = hmacSigner("device-bound-key")
     private val attackerSigner = hmacSigner("attacker-key")
 
-    private fun hmacSigner(key: String): Signer = Signer { bytes ->
-        Mac.getInstance("HmacSHA256").apply {
-            init(SecretKeySpec(key.encodeToByteArray(), "HmacSHA256"))
-        }.doFinal(bytes)
-    }
+    private fun hmacSigner(key: String): Signer =
+        Signer { bytes ->
+            Mac
+                .getInstance("HmacSHA256")
+                .apply {
+                    init(SecretKeySpec(key.encodeToByteArray(), "HmacSHA256"))
+                }.doFinal(bytes)
+        }
 
     @Test
     fun `canonical bytes are stable regardless of unlock ordering`() {

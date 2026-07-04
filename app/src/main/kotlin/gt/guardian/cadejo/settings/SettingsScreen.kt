@@ -26,7 +26,10 @@ import gt.guardian.cadejo.core.ui.theme.CadejoColors
 import gt.guardian.cadejo.domain.settings.GameSettings
 
 @Composable
-fun SettingsRoute(onBack: () -> Unit = {}, modifier: Modifier = Modifier) {
+fun SettingsRoute(
+    onBack: () -> Unit = {},
+    modifier: Modifier = Modifier,
+) {
     val viewModel: SettingsViewModel = hiltViewModel()
     val settings by viewModel.settings.collectAsState()
     SettingsScreen(
@@ -76,7 +79,11 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+private fun ToggleRow(
+    label: String,
+    checked: Boolean,
+    onChange: (Boolean) -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
         verticalAlignment = Alignment.CenterVertically,

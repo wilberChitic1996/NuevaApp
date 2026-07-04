@@ -133,14 +133,20 @@ fun GameScreen(
                 OutlinedButton(
                     onClick = onWait,
                     enabled = !run.isOver,
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
-                        .semantics { contentDescription = "Esperar un turno" },
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .heightIn(min = 48.dp)
+                            .semantics { contentDescription = "Esperar un turno" },
                 ) { Text(stringResource(R.string.game_action_wait)) }
 
                 Button(
                     onClick = onRestart,
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
-                        .semantics { contentDescription = "Reiniciar la partida" },
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .heightIn(min = 48.dp)
+                            .semantics { contentDescription = "Reiniciar la partida" },
                 ) { Text(stringResource(R.string.game_action_restart)) }
             }
         }
@@ -148,7 +154,10 @@ fun GameScreen(
 }
 
 @Composable
-private fun Hud(game: GameState, levelIndex: Int) {
+private fun Hud(
+    game: GameState,
+    levelIndex: Int,
+) {
     Row(
         modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {},
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -219,32 +228,43 @@ private fun AbilityButton(
     OutlinedButton(
         onClick = onClick,
         enabled = enabled,
-        colors = if (highlighted) {
-            ButtonDefaults.outlinedButtonColors(contentColor = CadejoColors.NightDeep)
-        } else {
-            ButtonDefaults.outlinedButtonColors(contentColor = CadejoColors.GoldSoft)
-        },
-        modifier = modifier.heightIn(min = 48.dp)
-            .semantics { contentDescription = "$label${if (remaining > 0) ", en recarga $remaining turnos" else ", lista"}" },
+        colors =
+            if (highlighted) {
+                ButtonDefaults.outlinedButtonColors(contentColor = CadejoColors.NightDeep)
+            } else {
+                ButtonDefaults.outlinedButtonColors(contentColor = CadejoColors.GoldSoft)
+            },
+        modifier =
+            modifier
+                .heightIn(min = 48.dp)
+                .semantics { contentDescription = "$label${if (remaining > 0) ", en recarga $remaining turnos" else ", lista"}" },
     ) { Text(text, textAlign = TextAlign.Center) }
 }
 
 @Composable
-private fun RunBanner(status: RunStatus, score: Int) {
+private fun RunBanner(
+    status: RunStatus,
+    score: Int,
+) {
     val over = status != RunStatus.RUNNING
     val alpha by animateFloatAsState(if (over) 1f else 0f, animationSpec = tween(400), label = "runBanner")
-    val (text, color) = when (status) {
-        RunStatus.COMPLETED -> stringResource(R.string.run_completed, score) to CadejoColors.GoldSoft
-        RunStatus.FAILED -> stringResource(R.string.run_failed, score) to CadejoColors.Llorona
-        RunStatus.RUNNING -> "" to Color.Transparent
-    }
+    val (text, color) =
+        when (status) {
+            RunStatus.COMPLETED -> stringResource(R.string.run_completed, score) to CadejoColors.GoldSoft
+            RunStatus.FAILED -> stringResource(R.string.run_failed, score) to CadejoColors.Llorona
+            RunStatus.RUNNING -> "" to Color.Transparent
+        }
     Text(
         text = text,
         color = color,
         textAlign = TextAlign.Center,
         fontWeight = FontWeight.Bold,
         style = MaterialTheme.typography.titleLarge,
-        modifier = Modifier.fillMaxWidth().padding(top = 8.dp).alpha(alpha)
-            .clearAndSetSemantics { contentDescription = text },
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+                .alpha(alpha)
+                .clearAndSetSemantics { contentDescription = text },
     )
 }

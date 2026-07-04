@@ -24,9 +24,13 @@ data class ProfileEntity(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ProfileEntity) return false
-        return id == other.id && coins == other.coins && unlocksCsv == other.unlocksCsv &&
-            selectedSkin == other.selectedSkin && adsRemoved == other.adsRemoved &&
-            totalRuns == other.totalRuns && bestScore == other.bestScore &&
+        return id == other.id &&
+            coins == other.coins &&
+            unlocksCsv == other.unlocksCsv &&
+            selectedSkin == other.selectedSkin &&
+            adsRemoved == other.adsRemoved &&
+            totalRuns == other.totalRuns &&
+            bestScore == other.bestScore &&
             signature.contentEquals(other.signature)
     }
 

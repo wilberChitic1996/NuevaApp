@@ -8,7 +8,6 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
 class DailyTest {
-
     @Test
     fun `seed is stable for a given date and varies by date`() {
         assertEquals(DailySeed.seedForDate("2026-07-04"), DailySeed.seedForDate("2026-07-04"))
@@ -17,14 +16,15 @@ class DailyTest {
 
     @Test
     fun `intent codec round-trips every intent variant`() {
-        val intents = listOf(
-            Intent.Wait,
-            Intent.Move(Hex(2, -3)),
-            Intent.Move(Hex(-1, 0)),
-            Intent.UseAbility(AbilityId.HOWL),
-            Intent.UseAbility(AbilityId.PROTECTIVE_LIGHT),
-            Intent.UseAbility(AbilityId.LEAP, Hex(-2, 1)),
-        )
+        val intents =
+            listOf(
+                Intent.Wait,
+                Intent.Move(Hex(2, -3)),
+                Intent.Move(Hex(-1, 0)),
+                Intent.UseAbility(AbilityId.HOWL),
+                Intent.UseAbility(AbilityId.PROTECTIVE_LIGHT),
+                Intent.UseAbility(AbilityId.LEAP, Hex(-2, 1)),
+            )
         val encoded = IntentCodec.encode(intents)
         assertEquals(intents, IntentCodec.decode(encoded))
     }

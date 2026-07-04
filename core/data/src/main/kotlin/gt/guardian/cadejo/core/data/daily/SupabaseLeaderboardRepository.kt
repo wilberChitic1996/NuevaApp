@@ -19,7 +19,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /** Base URL + anon key for the Supabase project; blank => leaderboard disabled. */
-data class LeaderboardConfig(val baseUrl: String, val anonKey: String) {
+data class LeaderboardConfig(
+    val baseUrl: String,
+    val anonKey: String,
+) {
     val isConfigured: Boolean get() = baseUrl.isNotBlank() && anonKey.isNotBlank()
 }
 
@@ -36,22 +39,22 @@ data class LeaderboardConfig(val baseUrl: String, val anonKey: String) {
 class SupabaseLeaderboardRepository @Inject constructor(
     private val config: LeaderboardConfig,
 ) : LeaderboardRepository {
-
     override val isEnabled: Boolean get() = config.isConfigured
 
     override suspend fun submit(submission: ScoreSubmission): SubmitResult {
         if (!config.isConfigured) return SubmitResult.Disabled
         return withContext(Dispatchers.IO) {
             runCatching {
-                val body = JSONObject().apply {
-                    put("date_utc", submission.dateUtc)
-                    put("seed", submission.seed)
-                    put("score", submission.score)
-                    put("reached_level", submission.reachedLevel)
-                    put("intents", submission.intentsEncoded)
-                    put("display_name", submission.displayName)
-                    put("integrity_token", submission.integrityToken ?: JSONObject.NULL)
-                }
+                val body =
+                    JSONObject().apply {
+                        put("date_utc", submission.dateUtc)
+                        put("seed", submission.seed)
+                        put("score", submission.score)
+                        put("reached_level", submission.reachedLevel)
+                        put("intents", submission.intentsEncoded)
+                        put("display_name", submission.displayName)
+                        put("integrity_token", submission.integrityToken ?: JSONObject.NULL)
+                    }
                 val (code, response) = post("${config.baseUrl}/functions/v1/submit-daily-score", body.toString())
                 if (code in 200..299) {
                     SubmitResult.Accepted
@@ -63,50 +66,61 @@ class SupabaseLeaderboardRepository @Inject constructor(
         }
     }
 
-    override fun topScores(dateUtc: String, limit: Int): Flow<List<LeaderboardEntry>> = flow {
-        if (!config.isConfigured) {
-            emit(emptyList())
-            return@flow
-        }
-        val encodedDate = URLEncoder.encode(dateUtc, "UTF-8")
-        val url = "${config.baseUrl}/rest/v1/daily_leaderboard" +
-            "?date_utc=eq.$encodedDate&order=score.desc&limit=$limit" +
-            "&select=display_name,score"
-        val (code, response) = get(url)
-        if (code !in 200..299) {
-            emit(emptyList())
-            return@flow
-        }
-        val array = JSONArray(response)
-        val entries = (0 until array.length()).map { i ->
-            val row = array.getJSONObject(i)
-            LeaderboardEntry(rank = i + 1, displayName = row.optString("display_name", "—"), score = row.optInt("score"))
-        }
-        emit(entries)
-    }.flowOn(Dispatchers.IO).catch { emit(emptyList()) }
+    override fun topScores(
+        dateUtc: String,
+        limit: Int,
+    ): Flow<List<LeaderboardEntry>> =
+        flow {
+            if (!config.isConfigured) {
+                emit(emptyList())
+                return@flow
+            }
+            val encodedDate = URLEncoder.encode(dateUtc, "UTF-8")
+            val url =
+                "${config.baseUrl}/rest/v1/daily_leaderboard" +
+                    "?date_utc=eq.$encodedDate&order=score.desc&limit=$limit" +
+                    "&select=display_name,score"
+            val (code, response) = get(url)
+            if (code !in 200..299) {
+                emit(emptyList())
+                return@flow
+            }
+            val array = JSONArray(response)
+            val entries =
+                (0 until array.length()).map { i ->
+                    val row = array.getJSONObject(i)
+                    LeaderboardEntry(rank = i + 1, displayName = row.optString("display_name", "—"), score = row.optInt("score"))
+                }
+            emit(entries)
+        }.flowOn(Dispatchers.IO).catch { emit(emptyList()) }
 
     // --- Minimal HTTP (no extra dependency) --------------------------------
 
-    private fun post(urlStr: String, json: String): Pair<Int, String> {
-        val conn = (URL(urlStr).openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"
-            doOutput = true
-            connectTimeout = 10_000
-            readTimeout = 10_000
-            applyAuthHeaders()
-            setRequestProperty("Content-Type", "application/json")
-        }
+    private fun post(
+        urlStr: String,
+        json: String,
+    ): Pair<Int, String> {
+        val conn =
+            (URL(urlStr).openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                doOutput = true
+                connectTimeout = 10_000
+                readTimeout = 10_000
+                applyAuthHeaders()
+                setRequestProperty("Content-Type", "application/json")
+            }
         conn.outputStream.use { it.write(json.encodeToByteArray()) }
         return conn.readResult()
     }
 
     private fun get(urlStr: String): Pair<Int, String> {
-        val conn = (URL(urlStr).openConnection() as HttpURLConnection).apply {
-            requestMethod = "GET"
-            connectTimeout = 10_000
-            readTimeout = 10_000
-            applyAuthHeaders()
-        }
+        val conn =
+            (URL(urlStr).openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 10_000
+                readTimeout = 10_000
+                applyAuthHeaders()
+            }
         return conn.readResult()
     }
 

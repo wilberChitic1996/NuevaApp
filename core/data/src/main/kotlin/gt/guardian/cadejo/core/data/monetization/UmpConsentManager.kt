@@ -21,7 +21,6 @@ class UmpConsentManager @Inject constructor(
     @ApplicationContext context: Context,
     private val activityHolder: CurrentActivityHolder,
 ) : ConsentManager {
-
     private val consentInformation = UserMessagingPlatform.getConsentInformation(context)
 
     override val canRequestAds: Boolean

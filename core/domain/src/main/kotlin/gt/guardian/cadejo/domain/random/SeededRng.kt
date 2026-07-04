@@ -13,8 +13,9 @@ package gt.guardian.cadejo.domain.random
  * [gt.guardian.cadejo.domain.model.GameState] so the engine stays a pure function:
  * feed the same state in, get the same numbers out.
  */
-class SeededRng(seed: Long) {
-
+class SeededRng(
+    seed: Long,
+) {
     /** The full mutable state. Snapshot it into GameState to preserve determinism. */
     var state: Long = seed
         private set
@@ -34,7 +35,10 @@ class SeededRng(seed: Long) {
     }
 
     /** Int in the inclusive range `[min, max]`. */
-    fun nextIntInRange(min: Int, max: Int): Int {
+    fun nextIntInRange(
+        min: Int,
+        max: Int,
+    ): Int {
         require(max >= min) { "max ($max) must be >= min ($min)" }
         return min + nextInt(max - min + 1)
     }
@@ -48,7 +52,7 @@ class SeededRng(seed: Long) {
         // Constants from the reference SplitMix64. Written as unsigned literals
         // and reinterpreted to Long so the high bit is set correctly.
         const val GOLDEN_GAMMA: Long = -0x61c8864680b583ebL // 0x9E3779B97F4A7C15
-        const val MIX_1: Long = -0x40a7b892e31b1a47L        // 0xBF58476D1CE4E5B9
-        const val MIX_2: Long = -0x6b2fb644ecceee15L        // 0x94D049BB133111EB
+        const val MIX_1: Long = -0x40a7b892e31b1a47L // 0xBF58476D1CE4E5B9
+        const val MIX_2: Long = -0x6b2fb644ecceee15L // 0x94D049BB133111EB
     }
 }

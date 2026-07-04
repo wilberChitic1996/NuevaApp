@@ -15,13 +15,22 @@ import gt.guardian.cadejo.domain.model.PatternType
  * advance their own waypoint index purely.
  */
 fun interface MovementPattern {
-    fun step(state: GameState, enemy: Enemy, target: Hex, blocked: Set<Hex>): Enemy
+    fun step(
+        state: GameState,
+        enemy: Enemy,
+        target: Hex,
+        blocked: Set<Hex>,
+    ): Enemy
 }
 
 /** Shared BFS helpers used by the chase-like patterns. */
 internal object HexPathing {
     /** BFS distance from [from] to every reachable walkable hex, respecting [blocked]. */
-    fun distances(board: Board, from: Hex, blocked: Set<Hex>): Map<Hex, Int> {
+    fun distances(
+        board: Board,
+        from: Hex,
+        blocked: Set<Hex>,
+    ): Map<Hex, Int> {
         val dist = HashMap<Hex, Int>()
         val queue = ArrayDeque<Hex>()
         dist[from] = 0
@@ -39,7 +48,12 @@ internal object HexPathing {
     }
 
     /** The adjacent walkable hex from [from] that most reduces BFS distance to [target]; else [from]. */
-    fun stepFrom(board: Board, from: Hex, target: Hex, blocked: Set<Hex>): Hex {
+    fun stepFrom(
+        board: Board,
+        from: Hex,
+        target: Hex,
+        blocked: Set<Hex>,
+    ): Hex {
         val dist = distances(board, from = target, blocked = blocked)
         val candidates = from.neighbors().filter { board.isWalkable(it) && it !in blocked }
         val best = candidates.minByOrNull { dist[it] ?: Int.MAX_VALUE }
@@ -48,13 +62,23 @@ internal object HexPathing {
         return if (best != null && bestDist < hereDist) best else from
     }
 
-    fun stepToward(state: GameState, enemy: Enemy, target: Hex, blocked: Set<Hex>): Hex =
+    fun stepToward(
+        state: GameState,
+        enemy: Enemy,
+        target: Hex,
+        blocked: Set<Hex>,
+    ): Hex =
         stepFrom(state.board, enemy.position, target, blocked)
 }
 
 /** Chase: shortest-path step toward the target (the traveler). */
 object ChasePattern : MovementPattern {
-    override fun step(state: GameState, enemy: Enemy, target: Hex, blocked: Set<Hex>): Enemy =
+    override fun step(
+        state: GameState,
+        enemy: Enemy,
+        target: Hex,
+        blocked: Set<Hex>,
+    ): Enemy =
         enemy.copy(position = HexPathing.stepToward(state, enemy, target, blocked))
 }
 
@@ -64,7 +88,12 @@ object ChasePattern : MovementPattern {
  * and exploit the loop.
  */
 object PatrolPattern : MovementPattern {
-    override fun step(state: GameState, enemy: Enemy, target: Hex, blocked: Set<Hex>): Enemy {
+    override fun step(
+        state: GameState,
+        enemy: Enemy,
+        target: Hex,
+        blocked: Set<Hex>,
+    ): Enemy {
         if (enemy.patrolRoute.isEmpty()) return ChasePattern.step(state, enemy, target, blocked)
         val waypoint = enemy.patrolRoute[enemy.patrolIndex % enemy.patrolRoute.size]
         return if (enemy.position == waypoint) {
@@ -84,7 +113,12 @@ object PatrolPattern : MovementPattern {
  * never fully passive.
  */
 object MirrorPattern : MovementPattern {
-    override fun step(state: GameState, enemy: Enemy, target: Hex, blocked: Set<Hex>): Enemy {
+    override fun step(
+        state: GameState,
+        enemy: Enemy,
+        target: Hex,
+        blocked: Set<Hex>,
+    ): Enemy {
         val delta = state.lastPlayerStep
         if (delta != null) {
             val mirrored = enemy.position + delta
@@ -98,9 +132,10 @@ object MirrorPattern : MovementPattern {
 
 /** Resolves a [PatternType] to its strategy. */
 object Patterns {
-    fun of(type: PatternType): MovementPattern = when (type) {
-        PatternType.CHASE -> ChasePattern
-        PatternType.PATROL -> PatrolPattern
-        PatternType.MIRROR -> MirrorPattern
-    }
+    fun of(type: PatternType): MovementPattern =
+        when (type) {
+            PatternType.CHASE -> ChasePattern
+            PatternType.PATROL -> PatrolPattern
+            PatternType.MIRROR -> MirrorPattern
+        }
 }

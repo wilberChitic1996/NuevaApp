@@ -21,8 +21,8 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
     @Inject lateinit var consentManager: ConsentManager
+
     @Inject lateinit var rewardedAdService: RewardedAdService
 
     override fun onCreate(savedInstanceState: Bundle?) {

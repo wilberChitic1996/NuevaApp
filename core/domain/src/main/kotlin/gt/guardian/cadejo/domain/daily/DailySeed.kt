@@ -9,7 +9,6 @@ package gt.guardian.cadejo.domain.daily
  * puzzle, and the backend can regenerate it from just the date.
  */
 object DailySeed {
-
     private val FNV_OFFSET_BASIS: Long = 0xCBF29CE484222325uL.toLong()
     private const val FNV_PRIME: Long = 0x100000001B3L
 

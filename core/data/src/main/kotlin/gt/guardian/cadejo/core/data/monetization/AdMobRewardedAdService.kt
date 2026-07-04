@@ -30,7 +30,6 @@ class AdMobRewardedAdService @Inject constructor(
     private val activityHolder: CurrentActivityHolder,
     private val consent: ConsentManager,
 ) : RewardedAdService {
-
     private val initialized = AtomicBoolean(false)
     private var ad: RewardedAd? = null
     private var loading = false
@@ -61,25 +60,27 @@ class AdMobRewardedAdService @Inject constructor(
 
     override suspend fun showRewarded(): RewardOutcome {
         val activity = activityHolder.current ?: return RewardOutcome.UNAVAILABLE
-        val current = ad ?: run {
-            preload()
-            return RewardOutcome.UNAVAILABLE
-        }
+        val current =
+            ad ?: run {
+                preload()
+                return RewardOutcome.UNAVAILABLE
+            }
 
         return suspendCancellableCoroutine { cont ->
             var earned = false
-            current.fullScreenContentCallback = object : FullScreenContentCallback() {
-                override fun onAdDismissedFullScreenContent() {
-                    ad = null
-                    preload()
-                    if (cont.isActive) cont.resume(if (earned) RewardOutcome.EARNED else RewardOutcome.DISMISSED)
-                }
+            current.fullScreenContentCallback =
+                object : FullScreenContentCallback() {
+                    override fun onAdDismissedFullScreenContent() {
+                        ad = null
+                        preload()
+                        if (cont.isActive) cont.resume(if (earned) RewardOutcome.EARNED else RewardOutcome.DISMISSED)
+                    }
 
-                override fun onAdFailedToShowFullScreenContent(error: com.google.android.gms.ads.AdError) {
-                    ad = null
-                    if (cont.isActive) cont.resume(RewardOutcome.UNAVAILABLE)
+                    override fun onAdFailedToShowFullScreenContent(error: com.google.android.gms.ads.AdError) {
+                        ad = null
+                        if (cont.isActive) cont.resume(RewardOutcome.UNAVAILABLE)
+                    }
                 }
-            }
             current.show(activity) { earned = true }
         }
     }

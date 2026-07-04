@@ -44,16 +44,19 @@ class GameViewModel @Inject constructor(
     private val progressRepository: ProgressRepository,
     private val rewardedAds: RewardedAdService,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(GameUiState(run = RunEngine.newRun(seedSource.newSeed())))
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
     private var lastEarnedCoins: Long = 0
 
     fun onHexTap(hex: Hex) = update { GameInteractor.tap(it, hex) }
+
     fun onWait() = update { GameInteractor.wait(it) }
+
     fun onHowl() = update { GameInteractor.howl(it) }
+
     fun onProtect() = update { GameInteractor.protect(it) }
+
     fun onToggleLeap() = update(awardable = false) { GameInteractor.toggleLeap(it) }
 
     fun onRestart() {
@@ -84,7 +87,10 @@ class GameViewModel @Inject constructor(
         }
     }
 
-    private fun update(awardable: Boolean = true, transition: (GameUiState) -> GameUiState) {
+    private fun update(
+        awardable: Boolean = true,
+        transition: (GameUiState) -> GameUiState,
+    ) {
         val previous = _uiState.value
         val next = transition(previous)
         _uiState.value = next
@@ -96,13 +102,14 @@ class GameViewModel @Inject constructor(
 
     private fun awardRun(run: RunState) {
         lastEarnedCoins = Economy.coinsForRun(run.score, run.levelIndex)
-        val record = RunRecord(
-            seed = run.seed,
-            mode = run.mode,
-            reachedLevel = run.levelIndex,
-            score = run.score,
-            outcome = if (run.status == RunStatus.COMPLETED) RunOutcome.COMPLETED else RunOutcome.FAILED,
-        )
+        val record =
+            RunRecord(
+                seed = run.seed,
+                mode = run.mode,
+                reachedLevel = run.levelIndex,
+                score = run.score,
+                outcome = if (run.status == RunStatus.COMPLETED) RunOutcome.COMPLETED else RunOutcome.FAILED,
+            )
         viewModelScope.launch { progressRepository.awardRun(record) }
     }
 }

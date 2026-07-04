@@ -18,29 +18,36 @@ enum class Terrain {
 }
 
 /** A single cell on the board. */
-data class Cell(val hex: Hex, val terrain: Terrain)
+data class Cell(
+    val hex: Hex,
+    val terrain: Terrain,
+)
 
 /**
  * The playing field: an immutable map of hex -> cell. A hex that is not present
  * in [cells] is "off the board" and cannot be entered.
  */
-data class Board(val cells: Map<Hex, Cell>) {
-
+data class Board(
+    val cells: Map<Hex, Cell>,
+) {
     fun terrainAt(hex: Hex): Terrain? = cells[hex]?.terrain
 
     fun contains(hex: Hex): Boolean = cells.containsKey(hex)
 
     /** True if the hex exists on the board and is not a wall. */
-    fun isWalkable(hex: Hex): Boolean = when (terrainAt(hex)) {
-        null, Terrain.WALL -> false
-        else -> true
-    }
+    fun isWalkable(hex: Hex): Boolean =
+        when (terrainAt(hex)) {
+            null, Terrain.WALL -> false
+            else -> true
+        }
 
     companion object {
         /** Builds a filled-hexagon board of the given [radius], all [Terrain.FLOOR]. */
         fun hexagon(radius: Int): Board {
-            val cells = Hex.disc(Hex.ORIGIN, radius)
-                .associateWith { Cell(it, Terrain.FLOOR) }
+            val cells =
+                Hex
+                    .disc(Hex.ORIGIN, radius)
+                    .associateWith { Cell(it, Terrain.FLOOR) }
             return Board(cells)
         }
     }

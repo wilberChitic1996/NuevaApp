@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,8 +43,8 @@ class PlayBillingRepository @Inject constructor(
     @ApplicationContext context: Context,
     private val progressRepository: ProgressRepository,
     private val activityHolder: CurrentActivityHolder,
-) : BillingRepository, PurchasesUpdatedListener {
-
+) : BillingRepository,
+    PurchasesUpdatedListener {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _products = MutableStateFlow<List<Product>>(emptyList())
@@ -56,10 +55,12 @@ class PlayBillingRepository @Inject constructor(
 
     private val productDetails = mutableMapOf<String, ProductDetails>()
 
-    private val client: BillingClient = BillingClient.newBuilder(context)
-        .setListener(this)
-        .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
-        .build()
+    private val client: BillingClient =
+        BillingClient
+            .newBuilder(context)
+            .setListener(this)
+            .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
+            .build()
 
     private val managedIds = listOf(ProductIds.REMOVE_ADS, ProductIds.COIN_PACK_SMALL)
 
@@ -68,42 +69,49 @@ class PlayBillingRepository @Inject constructor(
     }
 
     private fun connect() {
-        client.startConnection(object : BillingClientStateListener {
-            override fun onBillingSetupFinished(result: BillingResult) {
-                if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                    scope.launch {
-                        queryProducts()
-                        restorePurchases()
+        client.startConnection(
+            object : BillingClientStateListener {
+                override fun onBillingSetupFinished(result: BillingResult) {
+                    if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+                        scope.launch {
+                            queryProducts()
+                            restorePurchases()
+                        }
                     }
                 }
-            }
 
-            override fun onBillingServiceDisconnected() {
-                // Left to the next call to reconnect; a production app would back off and retry.
-            }
-        })
+                override fun onBillingServiceDisconnected() {
+                    // Left to the next call to reconnect; a production app would back off and retry.
+                }
+            },
+        )
     }
 
     private suspend fun queryProducts() {
-        val params = QueryProductDetailsParams.newBuilder().setProductList(
-            managedIds.map { id ->
-                QueryProductDetailsParams.Product.newBuilder()
-                    .setProductId(id)
-                    .setProductType(BillingClient.ProductType.INAPP)
-                    .build()
-            },
-        ).build()
+        val params =
+            QueryProductDetailsParams
+                .newBuilder()
+                .setProductList(
+                    managedIds.map { id ->
+                        QueryProductDetailsParams.Product
+                            .newBuilder()
+                            .setProductId(id)
+                            .setProductType(BillingClient.ProductType.INAPP)
+                            .build()
+                    },
+                ).build()
 
         val result = client.queryProductDetails(params)
         val details = result.productDetailsList.orEmpty()
         details.forEach { productDetails[it.productId] = it }
-        _products.value = details.map { pd ->
-            Product(
-                id = pd.productId,
-                title = pd.name,
-                formattedPrice = pd.oneTimePurchaseOfferDetails?.formattedPrice ?: "",
-            )
-        }
+        _products.value =
+            details.map { pd ->
+                Product(
+                    id = pd.productId,
+                    title = pd.name,
+                    formattedPrice = pd.oneTimePurchaseOfferDetails?.formattedPrice ?: "",
+                )
+            }
     }
 
     override suspend fun purchase(productId: String): Boolean {
@@ -112,26 +120,33 @@ class PlayBillingRepository @Inject constructor(
         // whether the flow launched successfully.
         val details = productDetails[productId] ?: return false
         val activity = activityHolder.current ?: return false
-        val params = BillingFlowParams.newBuilder()
-            .setProductDetailsParamsList(
-                listOf(
-                    BillingFlowParams.ProductDetailsParams.newBuilder()
-                        .setProductDetails(details)
-                        .build(),
-                ),
-            ).build()
+        val params =
+            BillingFlowParams
+                .newBuilder()
+                .setProductDetailsParamsList(
+                    listOf(
+                        BillingFlowParams.ProductDetailsParams
+                            .newBuilder()
+                            .setProductDetails(details)
+                            .build(),
+                    ),
+                ).build()
         val result = client.launchBillingFlow(activity, params)
         return result.responseCode == BillingClient.BillingResponseCode.OK
     }
 
     override suspend fun restorePurchases() {
-        val result = client.queryPurchasesAsync(
-            QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP).build(),
-        )
+        val result =
+            client.queryPurchasesAsync(
+                QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP).build(),
+            )
         result.purchasesList.forEach { handlePurchase(it) }
     }
 
-    override fun onPurchasesUpdated(result: BillingResult, purchases: MutableList<Purchase>?) {
+    override fun onPurchasesUpdated(
+        result: BillingResult,
+        purchases: MutableList<Purchase>?,
+    ) {
         if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
             purchases.forEach { handlePurchase(it) }
         }

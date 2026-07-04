@@ -6,8 +6,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ProgressLogicTest {
-
-    private fun record(score: Int, level: Int) =
+    private fun record(
+        score: Int,
+        level: Int,
+    ) =
         RunRecord(seed = 1, mode = RunMode.ROGUE, reachedLevel = level, score = score, outcome = RunOutcome.FAILED)
 
     @Test

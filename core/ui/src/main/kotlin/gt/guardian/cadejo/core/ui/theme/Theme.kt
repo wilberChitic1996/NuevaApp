@@ -11,16 +11,17 @@ import androidx.compose.runtime.Composable
  * light scheme, which keeps the mood consistent and the contrast decisions simple.
  * [isSystemInDarkTheme] is referenced only to keep the signature idiomatic.
  */
-private val CadejoDarkScheme = darkColorScheme(
-    primary = CadejoColors.Gold,
-    onPrimary = CadejoColors.NightDeep,
-    secondary = CadejoColors.NightViolet,
-    background = CadejoColors.NightDeep,
-    onBackground = CadejoColors.OnNight,
-    surface = CadejoColors.NightMid,
-    onSurface = CadejoColors.OnNight,
-    error = CadejoColors.HexHazard,
-)
+private val CadejoDarkScheme =
+    darkColorScheme(
+        primary = CadejoColors.Gold,
+        onPrimary = CadejoColors.NightDeep,
+        secondary = CadejoColors.NightViolet,
+        background = CadejoColors.NightDeep,
+        onBackground = CadejoColors.OnNight,
+        surface = CadejoColors.NightMid,
+        onSurface = CadejoColors.OnNight,
+        error = CadejoColors.HexHazard,
+    )
 
 @Composable
 fun CadejoTheme(

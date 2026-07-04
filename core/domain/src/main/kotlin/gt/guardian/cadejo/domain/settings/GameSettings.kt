@@ -23,12 +23,20 @@ data class GameSettings(
 /** Settings store abstraction; DataStore-backed implementation lives in :core:data. */
 interface SettingsRepository {
     val settings: Flow<GameSettings>
+
     suspend fun setLanguage(language: AppLanguage)
+
     suspend fun setColorblindMode(enabled: Boolean)
+
     suspend fun setReduceMotion(enabled: Boolean)
+
     suspend fun setSound(enabled: Boolean)
+
     suspend fun setMusic(enabled: Boolean)
+
     suspend fun setHaptics(enabled: Boolean)
+
     suspend fun setUmpConsentCollected(collected: Boolean)
+
     suspend fun setCrashlyticsConsent(consent: Boolean)
 }

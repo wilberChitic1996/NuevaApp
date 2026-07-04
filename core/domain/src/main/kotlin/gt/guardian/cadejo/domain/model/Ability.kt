@@ -40,9 +40,10 @@ object Balance {
     /** Reference turn count for the speed bonus; finishing faster scores more. */
     const val PAR_TURNS = 40
 
-    fun defaultAbilities(): List<AbilityState> = listOf(
-        AbilityState(AbilityId.HOWL, HOWL_COOLDOWN),
-        AbilityState(AbilityId.LEAP, LEAP_COOLDOWN),
-        AbilityState(AbilityId.PROTECTIVE_LIGHT, LIGHT_COOLDOWN),
-    )
+    fun defaultAbilities(): List<AbilityState> =
+        listOf(
+            AbilityState(AbilityId.HOWL, HOWL_COOLDOWN),
+            AbilityState(AbilityId.LEAP, LEAP_COOLDOWN),
+            AbilityState(AbilityId.PROTECTIVE_LIGHT, LIGHT_COOLDOWN),
+        )
 }

@@ -33,7 +33,10 @@ import gt.guardian.cadejo.domain.progress.UnlockCategory
 import gt.guardian.cadejo.domain.progress.UnlockId
 
 @Composable
-fun ShopRoute(onBack: () -> Unit = {}, modifier: Modifier = Modifier) {
+fun ShopRoute(
+    onBack: () -> Unit = {},
+    modifier: Modifier = Modifier,
+) {
     val viewModel: MetaViewModel = hiltViewModel()
     val profile by viewModel.profile.collectAsState()
     val feedback by viewModel.feedback.collectAsState()
@@ -149,41 +152,49 @@ private fun UnlockRow(
             Column(Modifier.weight(1f)) {
                 Text(stringResource(unlockLabel(unlock)), color = CadejoColors.OnNight, fontWeight = FontWeight.Bold)
                 Text(
-                    text = if (owned) stringResource(R.string.shop_owned_label)
-                    else stringResource(R.string.shop_cost, unlock.cost),
+                    text =
+                        if (owned) {
+                            stringResource(R.string.shop_owned_label)
+                        } else {
+                            stringResource(R.string.shop_cost, unlock.cost)
+                        },
                     color = CadejoColors.OnNightDim,
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
             when {
-                owned && unlock.category == UnlockCategory.SKIN -> OutlinedButton(
-                    onClick = onEquip,
-                    enabled = !equipped,
-                    modifier = Modifier.heightIn(min = 48.dp),
-                ) { Text(stringResource(if (equipped) R.string.shop_equipped else R.string.shop_equip)) }
+                owned && unlock.category == UnlockCategory.SKIN ->
+                    OutlinedButton(
+                        onClick = onEquip,
+                        enabled = !equipped,
+                        modifier = Modifier.heightIn(min = 48.dp),
+                    ) { Text(stringResource(if (equipped) R.string.shop_equipped else R.string.shop_equip)) }
 
                 owned -> Text(stringResource(R.string.shop_active), color = CadejoColors.GoldSoft)
 
-                else -> Button(
-                    onClick = onBuy,
-                    enabled = profile.coins >= unlock.cost,
-                    modifier = Modifier.heightIn(min = 48.dp),
-                ) { Text(stringResource(R.string.shop_buy)) }
+                else ->
+                    Button(
+                        onClick = onBuy,
+                        enabled = profile.coins >= unlock.cost,
+                        modifier = Modifier.heightIn(min = 48.dp),
+                    ) { Text(stringResource(R.string.shop_buy)) }
             }
         }
     }
 }
 
-private fun feedbackMessage(feedback: ShopFeedback): Int = when (feedback) {
-    ShopFeedback.BOUGHT -> R.string.shop_feedback_bought
-    ShopFeedback.ALREADY_OWNED -> R.string.shop_feedback_owned
-    ShopFeedback.NOT_ENOUGH_COINS -> R.string.shop_feedback_poor
-}
+private fun feedbackMessage(feedback: ShopFeedback): Int =
+    when (feedback) {
+        ShopFeedback.BOUGHT -> R.string.shop_feedback_bought
+        ShopFeedback.ALREADY_OWNED -> R.string.shop_feedback_owned
+        ShopFeedback.NOT_ENOUGH_COINS -> R.string.shop_feedback_poor
+    }
 
-private fun unlockLabel(unlock: UnlockId): Int = when (unlock) {
-    UnlockId.SKIN_JADE -> R.string.unlock_skin_jade
-    UnlockId.SKIN_OBSIDIAN -> R.string.unlock_skin_obsidian
-    UnlockId.SKIN_DAWN -> R.string.unlock_skin_dawn
-    UnlockId.MODIFIER_SWIFT -> R.string.unlock_mod_swift
-    UnlockId.MODIFIER_WARD -> R.string.unlock_mod_ward
-}
+private fun unlockLabel(unlock: UnlockId): Int =
+    when (unlock) {
+        UnlockId.SKIN_JADE -> R.string.unlock_skin_jade
+        UnlockId.SKIN_OBSIDIAN -> R.string.unlock_skin_obsidian
+        UnlockId.SKIN_DAWN -> R.string.unlock_skin_dawn
+        UnlockId.MODIFIER_SWIFT -> R.string.unlock_mod_swift
+        UnlockId.MODIFIER_WARD -> R.string.unlock_mod_ward
+    }

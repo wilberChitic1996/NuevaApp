@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
  * Features depend only on this abstraction (Dependency Inversion).
  */
 interface ProgressRepository {
-
     /** The current profile, emitting on every change. */
     val profile: Flow<PlayerProfile>
 

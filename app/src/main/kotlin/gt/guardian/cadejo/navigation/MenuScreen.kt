@@ -63,7 +63,10 @@ fun MenuScreen(
 }
 
 @Composable
-private fun MenuButton(label: String, onClick: () -> Unit) {
+private fun MenuButton(
+    label: String,
+    onClick: () -> Unit,
+) {
     OutlinedButton(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(top = 12.dp),

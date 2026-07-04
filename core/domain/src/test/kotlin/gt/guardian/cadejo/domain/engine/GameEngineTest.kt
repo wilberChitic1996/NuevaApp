@@ -15,7 +15,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class GameEngineTest {
-
     private fun baseState(
         player: Hex = Hex(0, 0),
         traveler: Hex = Hex(-1, 0),
@@ -31,7 +30,10 @@ class GameEngineTest {
         rngState = 0,
     )
 
-    private fun enemy(pos: Hex, pattern: PatternType = PatternType.CHASE) =
+    private fun enemy(
+        pos: Hex,
+        pattern: PatternType = PatternType.CHASE,
+    ) =
         Enemy("e", SpiritKind.LLORONA, pos, pattern)
 
     @Test
@@ -125,25 +127,30 @@ class GameEngineTest {
 
     @Test
     fun `an ability on cooldown is a no-op`() {
-        val cooling = baseState().let { s ->
-            s.copy(abilities = s.abilities.map { if (it.id == AbilityId.HOWL) it.triggered() else it })
-        }
+        val cooling =
+            baseState().let { s ->
+                s.copy(abilities = s.abilities.map { if (it.id == AbilityId.HOWL) it.triggered() else it })
+            }
         val next = GameEngine.reduce(cooling, Intent.UseAbility(AbilityId.HOWL))
         assertSame(cooling, next)
     }
 
     @Test
     fun `a fixed sequence of intents is deterministic`() {
-        val start = baseState(
-            player = Hex(0, 0), traveler = Hex(-1, 0), goal = Hex(-4, 0),
-            enemies = listOf(enemy(Hex(3, 0), PatternType.CHASE)),
-        )
-        val intents = listOf(
-            Intent.Move(Hex(-1, 1)),
-            Intent.UseAbility(AbilityId.HOWL),
-            Intent.Wait,
-            Intent.Move(Hex(-2, 1)),
-        )
+        val start =
+            baseState(
+                player = Hex(0, 0),
+                traveler = Hex(-1, 0),
+                goal = Hex(-4, 0),
+                enemies = listOf(enemy(Hex(3, 0), PatternType.CHASE)),
+            )
+        val intents =
+            listOf(
+                Intent.Move(Hex(-1, 1)),
+                Intent.UseAbility(AbilityId.HOWL),
+                Intent.Wait,
+                Intent.Move(Hex(-2, 1)),
+            )
         val a = intents.fold(start) { s, i -> GameEngine.reduce(s, i) }
         val b = intents.fold(start) { s, i -> GameEngine.reduce(s, i) }
         assertEquals(a, b)
@@ -151,15 +158,16 @@ class GameEngineTest {
 
     @Test
     fun `a passive escort is eventually caught`() {
-        var s = GameState(
-            board = Board.hexagon(3),
-            player = Hex(0, 0),
-            traveler = Hex(1, 0),
-            enemies = listOf(enemy(Hex(2, 0), PatternType.CHASE)),
-            goal = Hex(-3, 0),
-            seed = 1,
-            rngState = 0,
-        )
+        var s =
+            GameState(
+                board = Board.hexagon(3),
+                player = Hex(0, 0),
+                traveler = Hex(1, 0),
+                enemies = listOf(enemy(Hex(2, 0), PatternType.CHASE)),
+                goal = Hex(-3, 0),
+                seed = 1,
+                rngState = 0,
+            )
         repeat(40) { if (!s.isOver) s = GameEngine.reduce(s, Intent.Wait) }
         assertEquals(GameStatus.LOST, s.status)
     }

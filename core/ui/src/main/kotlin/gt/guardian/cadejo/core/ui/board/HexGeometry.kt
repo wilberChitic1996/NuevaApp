@@ -14,8 +14,10 @@ import kotlin.math.sqrt
  * @param size distance from a hex centre to a corner, in pixels.
  * @param origin pixel offset added to every hex centre (used to centre the board).
  */
-class HexLayout(val size: Float, val origin: Offset) {
-
+class HexLayout(
+    val size: Float,
+    val origin: Offset,
+) {
     fun toPixel(hex: Hex): Offset {
         val x = size * (SQRT3 * hex.q + SQRT3 / 2f * hex.r)
         val y = size * (1.5f * hex.r)
@@ -32,15 +34,19 @@ class HexLayout(val size: Float, val origin: Offset) {
     }
 
     /** The six corner points of a hex centred at [center]. */
-    fun corners(center: Offset): List<Offset> = (0 until 6).map { i ->
-        val angle = Math.PI / 180.0 * (60.0 * i - 30.0)
-        Offset(
-            x = center.x + size * cos(angle).toFloat(),
-            y = center.y + size * sin(angle).toFloat(),
-        )
-    }
+    fun corners(center: Offset): List<Offset> =
+        (0 until 6).map { i ->
+            val angle = Math.PI / 180.0 * (60.0 * i - 30.0)
+            Offset(
+                x = center.x + size * cos(angle).toFloat(),
+                y = center.y + size * sin(angle).toFloat(),
+            )
+        }
 
-    private fun cubeRound(qf: Float, rf: Float): Hex {
+    private fun cubeRound(
+        qf: Float,
+        rf: Float,
+    ): Hex {
         val sf = -qf - rf
         var q = qf.roundToInt()
         var r = rf.roundToInt()
@@ -62,7 +68,12 @@ class HexLayout(val size: Float, val origin: Offset) {
          * Builds a layout that fits every [hexes] cell inside [widthPx] x [heightPx]
          * with a small margin, and centres it.
          */
-        fun fitting(hexes: Collection<Hex>, widthPx: Float, heightPx: Float, marginPx: Float = 24f): HexLayout {
+        fun fitting(
+            hexes: Collection<Hex>,
+            widthPx: Float,
+            heightPx: Float,
+            marginPx: Float = 24f,
+        ): HexLayout {
             if (hexes.isEmpty()) return HexLayout(1f, Offset.Zero)
             // Use a unit layout to measure the bounding box, then scale.
             val unit = HexLayout(1f, Offset.Zero)

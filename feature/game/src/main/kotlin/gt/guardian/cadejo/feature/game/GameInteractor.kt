@@ -13,8 +13,10 @@ import gt.guardian.cadejo.domain.run.RunEngine
  * it's just functions over immutable values (no Android, no coroutines).
  */
 object GameInteractor {
-
-    fun tap(ui: GameUiState, hex: Hex): GameUiState {
+    fun tap(
+        ui: GameUiState,
+        hex: Hex,
+    ): GameUiState {
         if (ui.run.isOver) return ui
         return if (ui.leapArming) {
             applyIntent(ui, Intent.UseAbility(AbilityId.LEAP, hex))
@@ -31,7 +33,10 @@ object GameInteractor {
 
     fun toggleLeap(ui: GameUiState): GameUiState {
         if (ui.run.isOver) return ui
-        val ready = ui.run.current.ability(AbilityId.LEAP)?.isReady == true
+        val ready =
+            ui.run.current
+                .ability(AbilityId.LEAP)
+                ?.isReady == true
         if (!ready) return ui
         return if (ui.leapArming) {
             ui.copy(leapArming = false, highlight = emptySet())
@@ -40,16 +45,20 @@ object GameInteractor {
         }
     }
 
-    private fun applyIntent(ui: GameUiState, intent: Intent): GameUiState {
+    private fun applyIntent(
+        ui: GameUiState,
+        intent: Intent,
+    ): GameUiState {
         if (ui.run.isOver) return ui
         return ui.copy(run = RunEngine.apply(ui.run, intent), leapArming = false, highlight = emptySet())
     }
 
     fun leapTargets(ui: GameUiState): Set<Hex> {
         val game = ui.run.current
-        return game.board.cells.keys.filter { hex ->
-            val d = hex.distanceTo(game.player)
-            d in 1..Balance.LEAP_RANGE && game.board.isWalkable(hex) && hex != game.traveler
-        }.toSet()
+        return game.board.cells.keys
+            .filter { hex ->
+                val d = hex.distanceTo(game.player)
+                d in 1..Balance.LEAP_RANGE && game.board.isWalkable(hex) && hex != game.traveler
+            }.toSet()
     }
 }

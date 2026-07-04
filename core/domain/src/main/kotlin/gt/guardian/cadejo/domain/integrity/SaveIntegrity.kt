@@ -25,13 +25,19 @@ fun interface Signer {
 object SaveCodec {
     const val VERSION = 1
 
-    fun canonicalBytes(profile: PlayerProfile): ByteArray = buildString {
-        append("cadejo-save|v").append(VERSION)
-        append("|coins=").append(profile.coins)
-        append("|ads=").append(if (profile.adsRemoved) 1 else 0)
-        append("|unlocks=")
-        append(profile.unlocks.map(UnlockId::name).sorted().joinToString(","))
-    }.encodeToByteArray()
+    fun canonicalBytes(profile: PlayerProfile): ByteArray =
+        buildString {
+            append("cadejo-save|v").append(VERSION)
+            append("|coins=").append(profile.coins)
+            append("|ads=").append(if (profile.adsRemoved) 1 else 0)
+            append("|unlocks=")
+            append(
+                profile.unlocks
+                    .map(UnlockId::name)
+                    .sorted()
+                    .joinToString(","),
+            )
+        }.encodeToByteArray()
 }
 
 /**
@@ -43,15 +49,21 @@ object SaveCodec {
  * forge a signature byte by byte. Comparing every byte regardless closes that.
  */
 object SaveIntegrity {
-
     /** Recompute the signature and compare it, in constant time, to [storedSignature]. */
-    fun verify(profile: PlayerProfile, storedSignature: ByteArray, signer: Signer): Boolean {
+    fun verify(
+        profile: PlayerProfile,
+        storedSignature: ByteArray,
+        signer: Signer,
+    ): Boolean {
         val expected = signer.sign(SaveCodec.canonicalBytes(profile))
         return constantTimeEquals(expected, storedSignature)
     }
 
     /** Fresh signature for a profile, to store alongside it after every legitimate write. */
-    fun sign(profile: PlayerProfile, signer: Signer): ByteArray =
+    fun sign(
+        profile: PlayerProfile,
+        signer: Signer,
+    ): ByteArray =
         signer.sign(SaveCodec.canonicalBytes(profile))
 
     /**
@@ -59,10 +71,17 @@ object SaveIntegrity {
      * safe [PlayerProfile.INITIAL] (a detected tamper resets progression rather
      * than honouring forged coins/unlocks).
      */
-    fun sanitized(loaded: PlayerProfile, storedSignature: ByteArray?, signer: Signer): PlayerProfile =
+    fun sanitized(
+        loaded: PlayerProfile,
+        storedSignature: ByteArray?,
+        signer: Signer,
+    ): PlayerProfile =
         if (storedSignature != null && verify(loaded, storedSignature, signer)) loaded else PlayerProfile.INITIAL
 
-    fun constantTimeEquals(a: ByteArray, b: ByteArray): Boolean {
+    fun constantTimeEquals(
+        a: ByteArray,
+        b: ByteArray,
+    ): Boolean {
         if (a.size != b.size) return false
         var diff = 0
         for (i in a.indices) diff = diff or (a[i].toInt() xor b[i].toInt())

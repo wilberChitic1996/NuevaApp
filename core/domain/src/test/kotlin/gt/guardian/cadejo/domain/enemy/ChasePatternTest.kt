@@ -13,8 +13,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ChasePatternTest {
-
-    private fun stateWith(traveler: Hex, enemy: Hex, board: Board): GameState =
+    private fun stateWith(
+        traveler: Hex,
+        enemy: Hex,
+        board: Board,
+    ): GameState =
         GameState(
             board = board,
             player = Hex(0, 0),

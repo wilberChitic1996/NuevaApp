@@ -16,11 +16,13 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
-
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): CadejoDatabase =
-        Room.databaseBuilder(context, CadejoDatabase::class.java, CadejoDatabase.NAME)
+    fun provideDatabase(
+        @ApplicationContext context: Context,
+    ): CadejoDatabase =
+        Room
+            .databaseBuilder(context, CadejoDatabase::class.java, CadejoDatabase.NAME)
             // No destructive fallback: real migrations only, so progress is never wiped.
             .build()
 

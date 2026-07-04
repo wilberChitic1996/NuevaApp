@@ -28,7 +28,11 @@ data class LeaderboardEntry(
 /** Outcome of a submission attempt. */
 sealed interface SubmitResult {
     data object Accepted : SubmitResult
-    data class Rejected(val reason: String) : SubmitResult
+
+    data class Rejected(
+        val reason: String,
+    ) : SubmitResult
+
     /** The leaderboard backend isn't configured in this build. */
     data object Disabled : SubmitResult
 }
@@ -40,6 +44,11 @@ sealed interface SubmitResult {
  */
 interface LeaderboardRepository {
     val isEnabled: Boolean
+
     suspend fun submit(submission: ScoreSubmission): SubmitResult
-    fun topScores(dateUtc: String, limit: Int = 20): Flow<List<LeaderboardEntry>>
+
+    fun topScores(
+        dateUtc: String,
+        limit: Int = 20,
+    ): Flow<List<LeaderboardEntry>>
 }

@@ -26,8 +26,10 @@ import gt.guardian.cadejo.domain.model.Intent
  *  6. Tick cooldowns and the shield; advance the turn counter.
  */
 object GameEngine {
-
-    fun reduce(state: GameState, intent: Intent): GameState {
+    fun reduce(
+        state: GameState,
+        intent: Intent,
+    ): GameState {
         if (state.isOver) return state
 
         // Step 1 — player. Null means the action was illegal: no-op, no turn spent.
@@ -56,8 +58,9 @@ object GameEngine {
 
         // Step 5 — resolve captures.
         val caughtPlayer = afterEnemies.enemies.any { it.position == afterEnemies.player }
-        val caughtTraveler = afterEnemies.travelerShield == 0 &&
-            afterEnemies.enemies.any { it.position == afterEnemies.traveler }
+        val caughtTraveler =
+            afterEnemies.travelerShield == 0 &&
+                afterEnemies.enemies.any { it.position == afterEnemies.traveler }
         val status = if (caughtPlayer || caughtTraveler) GameStatus.LOST else GameStatus.PLAYING
 
         // Step 6 — tick timers, advance the turn.
@@ -71,33 +74,45 @@ object GameEngine {
 
     // --- Player action ------------------------------------------------------
 
-    private fun applyPlayerAction(state: GameState, intent: Intent): GameState? = when (intent) {
-        is Intent.Wait -> state.copy(lastPlayerStep = null)
-        is Intent.Move -> applyMove(state, intent.target)
-        is Intent.UseAbility -> applyAbility(state, intent)
-    }
+    private fun applyPlayerAction(
+        state: GameState,
+        intent: Intent,
+    ): GameState? =
+        when (intent) {
+            is Intent.Wait -> state.copy(lastPlayerStep = null)
+            is Intent.Move -> applyMove(state, intent.target)
+            is Intent.UseAbility -> applyAbility(state, intent)
+        }
 
-    private fun applyMove(state: GameState, target: Hex): GameState? {
-        val legal = target in state.player.neighbors() &&
-            state.board.isWalkable(target) &&
-            target != state.traveler
+    private fun applyMove(
+        state: GameState,
+        target: Hex,
+    ): GameState? {
+        val legal =
+            target in state.player.neighbors() &&
+                state.board.isWalkable(target) &&
+                target != state.traveler
         if (!legal) return null
         return state.copy(player = target, lastPlayerStep = target - state.player)
     }
 
-    private fun applyAbility(state: GameState, intent: Intent.UseAbility): GameState? {
+    private fun applyAbility(
+        state: GameState,
+        intent: Intent.UseAbility,
+    ): GameState? {
         val ability = state.ability(intent.id)?.takeIf { it.isReady } ?: return null
         val triggered = state.abilities.map { if (it.id == ability.id) it.triggered() else it }
 
         return when (intent.id) {
             AbilityId.HOWL -> {
-                val stunned = state.enemies.map { enemy ->
-                    if (enemy.position.distanceTo(state.player) <= Balance.HOWL_RADIUS) {
-                        enemy.copy(stunnedTurns = maxOf(enemy.stunnedTurns, Balance.HOWL_STUN_TURNS + 1))
-                    } else {
-                        enemy
+                val stunned =
+                    state.enemies.map { enemy ->
+                        if (enemy.position.distanceTo(state.player) <= Balance.HOWL_RADIUS) {
+                            enemy.copy(stunnedTurns = maxOf(enemy.stunnedTurns, Balance.HOWL_STUN_TURNS + 1))
+                        } else {
+                            enemy
+                        }
                     }
-                }
                 state.copy(enemies = stunned, abilities = triggered, lastPlayerStep = null)
             }
 
@@ -111,9 +126,10 @@ object GameEngine {
             AbilityId.LEAP -> {
                 val target = intent.target ?: return null
                 val distance = target.distanceTo(state.player)
-                val legal = distance in 1..Balance.LEAP_RANGE &&
-                    state.board.isWalkable(target) &&
-                    target != state.traveler
+                val legal =
+                    distance in 1..Balance.LEAP_RANGE &&
+                        state.board.isWalkable(target) &&
+                        target != state.traveler
                 if (!legal) return null
                 // A leap has no single direction, so it doesn't feed the mirror.
                 state.copy(player = target, abilities = triggered, lastPlayerStep = null)
@@ -125,29 +141,32 @@ object GameEngine {
 
     private fun moveTraveler(state: GameState): GameState {
         // The traveler trails the Cadejo, avoiding walls, enemies and the Cadejo's cell.
-        val blocked = buildSet {
-            state.enemies.forEach { add(it.position) }
-            add(state.player)
-        }
+        val blocked =
+            buildSet {
+                state.enemies.forEach { add(it.position) }
+                add(state.player)
+            }
         val next = HexPathing.stepFrom(state.board, state.traveler, target = state.player, blocked = blocked)
         return state.copy(traveler = next)
     }
 
     private fun moveEnemies(state: GameState): GameState {
         var working = state
-        val updated = working.enemies.map { enemy ->
-            if (enemy.stunnedTurns > 0) {
-                enemy.copy(stunnedTurns = enemy.stunnedTurns - 1)
-            } else {
-                val blocked = buildSet {
-                    working.enemies.forEach { if (it.id != enemy.id) add(it.position) }
-                    if (working.travelerShield > 0) add(working.traveler)
+        val updated =
+            working.enemies.map { enemy ->
+                if (enemy.stunnedTurns > 0) {
+                    enemy.copy(stunnedTurns = enemy.stunnedTurns - 1)
+                } else {
+                    val blocked =
+                        buildSet {
+                            working.enemies.forEach { if (it.id != enemy.id) add(it.position) }
+                            if (working.travelerShield > 0) add(working.traveler)
+                        }
+                    val moved = Patterns.of(enemy.pattern).step(working, enemy, working.traveler, blocked)
+                    working = working.copy(enemies = working.enemies.map { if (it.id == moved.id) moved else it })
+                    moved
                 }
-                val moved = Patterns.of(enemy.pattern).step(working, enemy, working.traveler, blocked)
-                working = working.copy(enemies = working.enemies.map { if (it.id == moved.id) moved else it })
-                moved
             }
-        }
         return working.copy(enemies = updated)
     }
 

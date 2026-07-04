@@ -6,8 +6,9 @@ tableros hexagonales, evitando al Cadejo negro y otros espíritus que se mueven 
 patrones predecibles. Sesiones de 2–5 minutos, runs de 10 niveles procedurales,
 meta-progresión roguelite.
 
-> Estado: **Fase 1 completa** (tablero hexagonal + movimiento + un enemigo con
-> patrón de persecución). Ver el roadmap por fases más abajo.
+> Estado: **todas las fases (1–6) completas** — juego jugable de punta a punta,
+> con meta-progresión, modo diario, monetización, CI/CD y listo para preparar la
+> publicación en Play. Ver el roadmap más abajo y `PUBLISHING.md`.
 
 ## Stack
 
@@ -70,8 +71,23 @@ La lógica pura se prueba en la JVM (rápido, sin device). Cobertura de Fase 1:
 ## Roadmap
 
 1. ✅ **Fase 1** — tablero hex + movimiento + un enemigo con patrón fijo.
-2. ⏳ **Fase 2** — generación procedural avanzada + victoria/derrota + run de 10.
-3. ⏳ **Fase 3** — meta-progresión (Room + SQLCipher) + save firmado con HMAC/Keystore.
-4. ⏳ **Fase 4** — modo diario + contrato de backend Supabase (solo scripts SQL).
-5. ⏳ **Fase 5** — AdMob (rewarded) + Play Billing v6 + UMP.
-6. ⏳ **Fase 6** — pulido, tests faltantes, CI/CD, checklist de publicación en Play.
+2. ✅ **Fase 2** — escolta + habilidades + patrones + run de 10 niveles con puntaje.
+3. ✅ **Fase 3** — meta-progresión (Room) + save firmado con HMAC/Keystore + tienda.
+4. ✅ **Fase 4** — modo diario + backend Supabase (SQL + Edge Function que revalida).
+5. ✅ **Fase 5** — AdMob (rewarded) + Play Billing v7 + UMP + navegación + ajustes.
+6. ✅ **Fase 6** — lint (ktlint+detekt), CI/CD, firma release, privacidad y checklist Play.
+
+## Documentos
+
+- `PRIVACY.md` — borrador de política de privacidad (según lo que la app recolecta).
+- `PUBLISHING.md` — checklist de publicación en Google Play + cómo medir rendimiento.
+- `backend/README.md` — despliegue del backend del leaderboard y validación server-side.
+- `.github/workflows/ci.yml` — CI: lint, tests y build de release firmado.
+
+## Calidad
+
+```bash
+./gradlew ktlintCheck detekt   # estilo + análisis estático
+./gradlew test testDebugUnitTest
+./gradlew bundleRelease        # AAB firmado (con secrets configurados)
+```

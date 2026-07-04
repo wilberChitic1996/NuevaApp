@@ -12,8 +12,10 @@ import gt.guardian.cadejo.domain.model.Intent
  * so a run replays identically anywhere — client or server.
  */
 object RunEngine {
-
-    fun newRun(seed: Long, mode: RunMode = RunMode.ROGUE): RunState {
+    fun newRun(
+        seed: Long,
+        mode: RunMode = RunMode.ROGUE,
+    ): RunState {
         val first = LevelGenerator.generate(seed = seed, levelIndex = 1, startingScore = 0)
         return RunState(seed = seed, current = first, levelIndex = 1, mode = mode)
     }
@@ -23,7 +25,10 @@ object RunEngine {
      * level is generated (carrying the score); clearing level 10 completes the run,
      * and any loss fails it.
      */
-    fun apply(run: RunState, intent: Intent): RunState {
+    fun apply(
+        run: RunState,
+        intent: Intent,
+    ): RunState {
         if (run.isOver) return run
 
         val next = GameEngine.reduce(run.current, intent)
@@ -43,11 +48,12 @@ object RunEngine {
                     run.copy(current = next, status = RunStatus.COMPLETED, intents = recorded)
                 } else {
                     val nextLevel = run.levelIndex + 1
-                    val generated = LevelGenerator.generate(
-                        seed = run.seed,
-                        levelIndex = nextLevel,
-                        startingScore = next.score,
-                    )
+                    val generated =
+                        LevelGenerator.generate(
+                            seed = run.seed,
+                            levelIndex = nextLevel,
+                            startingScore = next.score,
+                        )
                     run.copy(current = generated, levelIndex = nextLevel, intents = recorded)
                 }
             }
@@ -59,7 +65,11 @@ object RunEngine {
      * final run state. This is the canonical scoring path the backend uses: it
      * trusts only the seed + intents, never a client-reported score.
      */
-    fun replay(seed: Long, intents: List<Intent>, mode: RunMode = RunMode.ROGUE): RunState =
+    fun replay(
+        seed: Long,
+        intents: List<Intent>,
+        mode: RunMode = RunMode.ROGUE,
+    ): RunState =
         intents.fold(newRun(seed, mode)) { run, intent -> apply(run, intent) }
 
     /**
@@ -70,11 +80,12 @@ object RunEngine {
      */
     fun revive(run: RunState): RunState {
         if (run.status != RunStatus.FAILED) return run
-        val fresh = LevelGenerator.generate(
-            seed = run.seed,
-            levelIndex = run.levelIndex,
-            startingScore = run.current.score,
-        )
+        val fresh =
+            LevelGenerator.generate(
+                seed = run.seed,
+                levelIndex = run.levelIndex,
+                startingScore = run.current.score,
+            )
         return run.copy(current = fresh, status = RunStatus.RUNNING, revivesUsed = run.revivesUsed + 1)
     }
 }

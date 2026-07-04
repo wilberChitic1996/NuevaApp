@@ -29,7 +29,10 @@ import gt.guardian.cadejo.domain.daily.LeaderboardEntry
 import gt.guardian.cadejo.feature.game.GameScreen
 
 @Composable
-fun DailyRoute(onBack: () -> Unit = {}, modifier: Modifier = Modifier) {
+fun DailyRoute(
+    onBack: () -> Unit = {},
+    modifier: Modifier = Modifier,
+) {
     val viewModel: DailyViewModel = hiltViewModel()
     val ui by viewModel.ui.collectAsState()
     val submit by viewModel.submitState.collectAsState()
@@ -78,7 +81,11 @@ fun DailyRoute(onBack: () -> Unit = {}, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun LeaderboardPanel(enabled: Boolean, submit: SubmitState, scores: List<LeaderboardEntry>) {
+private fun LeaderboardPanel(
+    enabled: Boolean,
+    submit: SubmitState,
+    scores: List<LeaderboardEntry>,
+) {
     Card(
         colors = CardDefaults.cardColors(containerColor = CadejoColors.NightMid),
         modifier = Modifier.fillMaxWidth().padding(12.dp),
@@ -89,13 +96,14 @@ private fun LeaderboardPanel(enabled: Boolean, submit: SubmitState, scores: List
                 color = CadejoColors.GoldSoft,
                 fontWeight = FontWeight.Bold,
             )
-            val status = when {
-                !enabled -> stringResource(R.string.daily_backend_off)
-                submit is SubmitState.Submitting -> stringResource(R.string.daily_submitting)
-                submit is SubmitState.Submitted -> stringResource(R.string.daily_submitted)
-                submit is SubmitState.Error -> stringResource(R.string.daily_submit_error, submit.reason)
-                else -> ""
-            }
+            val status =
+                when {
+                    !enabled -> stringResource(R.string.daily_backend_off)
+                    submit is SubmitState.Submitting -> stringResource(R.string.daily_submitting)
+                    submit is SubmitState.Submitted -> stringResource(R.string.daily_submitted)
+                    submit is SubmitState.Error -> stringResource(R.string.daily_submit_error, submit.reason)
+                    else -> ""
+                }
             if (status.isNotEmpty()) {
                 Text(status, color = CadejoColors.OnNightDim, style = MaterialTheme.typography.bodySmall)
             }

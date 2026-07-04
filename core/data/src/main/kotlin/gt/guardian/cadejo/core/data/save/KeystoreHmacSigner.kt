@@ -29,7 +29,6 @@ import javax.inject.Singleton
  */
 @Singleton
 class KeystoreHmacSigner @Inject constructor() : Signer {
-
     override fun sign(bytes: ByteArray): ByteArray {
         val mac = Mac.getInstance(MAC_ALGORITHM)
         mac.init(getOrCreateKey())
@@ -42,7 +41,8 @@ class KeystoreHmacSigner @Inject constructor() : Signer {
 
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_HMAC_SHA256, PROVIDER)
         generator.init(
-            KeyGenParameterSpec.Builder(ALIAS, KeyProperties.PURPOSE_SIGN)
+            KeyGenParameterSpec
+                .Builder(ALIAS, KeyProperties.PURPOSE_SIGN)
                 .setKeySize(256)
                 .build(),
         )

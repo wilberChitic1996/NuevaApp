@@ -10,7 +10,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LevelGeneratorTest {
-
     @Test
     fun `same seed and level produce identical state`() {
         assertEquals(
@@ -46,7 +45,13 @@ class LevelGeneratorTest {
             assertTrue("has at least one enemy", s.enemies.isNotEmpty())
             assertTrue("has three abilities ready", s.abilities.size == 3 && s.abilities.all { it.isReady })
 
-            val occupied = buildList { add(s.player); add(s.traveler); add(s.goal); addAll(s.enemies.map { it.position }) }
+            val occupied =
+                buildList {
+                    add(s.player)
+                    add(s.traveler)
+                    add(s.goal)
+                    addAll(s.enemies.map { it.position })
+                }
             assertEquals("no two pieces share a cell", occupied.size, occupied.toSet().size)
             s.enemies.forEach { assertTrue("enemy on walkable cell", s.board.isWalkable(it.position)) }
         }

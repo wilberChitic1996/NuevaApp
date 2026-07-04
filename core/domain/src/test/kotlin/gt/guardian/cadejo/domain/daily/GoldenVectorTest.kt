@@ -14,7 +14,6 @@ import org.junit.Test
  * updated in lockstep — that's the whole point of the daily-leaderboard security.
  */
 class GoldenVectorTest {
-
     @Test
     fun `daily seed for 2026-07-04 is stable`() {
         assertEquals(-6065933189065925002L, DailySeed.seedForDate("2026-07-04"))

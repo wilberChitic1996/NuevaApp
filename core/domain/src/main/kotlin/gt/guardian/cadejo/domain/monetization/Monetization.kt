@@ -19,7 +19,11 @@ interface RewardedAdService {
 }
 
 /** A purchasable product (from Play Billing). */
-data class Product(val id: String, val title: String, val formattedPrice: String)
+data class Product(
+    val id: String,
+    val title: String,
+    val formattedPrice: String,
+)
 
 /** Well-known product ids. Must match the Play Console SKUs. */
 object ProductIds {

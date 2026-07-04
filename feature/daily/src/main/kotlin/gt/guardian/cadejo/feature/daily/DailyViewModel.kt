@@ -31,10 +31,16 @@ import javax.inject.Inject
 /** Status of the daily leaderboard submission. */
 sealed interface SubmitState {
     data object Idle : SubmitState
+
     data object Submitting : SubmitState
+
     data object Submitted : SubmitState
+
     data object Disabled : SubmitState
-    data class Error(val reason: String) : SubmitState
+
+    data class Error(
+        val reason: String,
+    ) : SubmitState
 }
 
 @HiltViewModel
@@ -43,7 +49,6 @@ class DailyViewModel @Inject constructor(
     private val leaderboard: LeaderboardRepository,
     private val progress: ProgressRepository,
 ) : ViewModel() {
-
     val today: String = dateProvider.todayUtcIso()
     private val seed: Long = DailySeed.seedForDate(today)
 
@@ -59,9 +64,13 @@ class DailyViewModel @Inject constructor(
         leaderboard.topScores(today).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun onHexTap(hex: Hex) = update { GameInteractor.tap(it, hex) }
+
     fun onWait() = update { GameInteractor.wait(it) }
+
     fun onHowl() = update { GameInteractor.howl(it) }
+
     fun onProtect() = update { GameInteractor.protect(it) }
+
     fun onToggleLeap() = update(runEndable = false) { GameInteractor.toggleLeap(it) }
 
     /** Replays today's puzzle from the same seed (leaderboard keeps the best). */
@@ -70,7 +79,10 @@ class DailyViewModel @Inject constructor(
         _ui.value = GameUiState(run = RunEngine.newRun(seed, RunMode.DAILY))
     }
 
-    private fun update(runEndable: Boolean = true, transition: (GameUiState) -> GameUiState) {
+    private fun update(
+        runEndable: Boolean = true,
+        transition: (GameUiState) -> GameUiState,
+    ) {
         val previous = _ui.value
         val next = transition(previous)
         _ui.value = next
@@ -92,21 +104,23 @@ class DailyViewModel @Inject constructor(
             )
 
             _submit.value = SubmitState.Submitting
-            val submission = ScoreSubmission(
-                dateUtc = today,
-                seed = seed,
-                reachedLevel = run.levelIndex,
-                score = run.score,
-                intentsEncoded = IntentCodec.encode(run.intents),
-                displayName = "Guardián",
-                // Play Integrity token is attached in Phase 5 once the SDK is wired.
-                integrityToken = null,
-            )
-            _submit.value = when (val result = leaderboard.submit(submission)) {
-                SubmitResult.Accepted -> SubmitState.Submitted
-                SubmitResult.Disabled -> SubmitState.Disabled
-                is SubmitResult.Rejected -> SubmitState.Error(result.reason)
-            }
+            val submission =
+                ScoreSubmission(
+                    dateUtc = today,
+                    seed = seed,
+                    reachedLevel = run.levelIndex,
+                    score = run.score,
+                    intentsEncoded = IntentCodec.encode(run.intents),
+                    displayName = "Guardián",
+                    // Play Integrity token is attached in Phase 5 once the SDK is wired.
+                    integrityToken = null,
+                )
+            _submit.value =
+                when (val result = leaderboard.submit(submission)) {
+                    SubmitResult.Accepted -> SubmitState.Submitted
+                    SubmitResult.Disabled -> SubmitState.Disabled
+                    is SubmitResult.Rejected -> SubmitState.Error(result.reason)
+                }
         }
     }
 }

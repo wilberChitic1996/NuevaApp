@@ -8,10 +8,12 @@ plugins {
 
 // Read sensitive config from local.properties (git-ignored) or, in CI, from
 // environment variables. NEVER hardcoded, NEVER committed.
-val secrets = Properties().apply {
-    val f = rootProject.file("local.properties")
-    if (f.exists()) f.inputStream().use { load(it) }
-}
+val secrets =
+    Properties().apply {
+        val f = rootProject.file("local.properties")
+        if (f.exists()) f.inputStream().use { load(it) }
+    }
+
 fun secret(key: String): String = (secrets.getProperty(key) ?: System.getenv(key) ?: "")
 
 android {
@@ -33,20 +35,38 @@ android {
         manifestPlaceholders["admobAppId"] = admobAppId
     }
 
+    // Release signing from secrets (local.properties or CI env). If no keystore is
+    // configured the release build stays unsigned — CI provides the real values.
+    // Play App Signing means this upload key is only for the bundle you upload.
+    val releaseStoreFile = secret("RELEASE_STORE_FILE")
+    val hasReleaseSigning = releaseStoreFile.isNotBlank() && rootProject.file(releaseStoreFile).exists()
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = rootProject.file(releaseStoreFile)
+                storePassword = secret("RELEASE_STORE_PASSWORD")
+                keyAlias = secret("RELEASE_KEY_ALIAS")
+                keyPassword = secret("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         getByName("debug") {
             isMinifyEnabled = false
             applicationIdSuffix = ".debug"
         }
         getByName("release") {
-            // R8: shrink + obfuscate + optimise. Full mode is enabled in
-            // gradle.properties. Release signing is wired in Phase 6.
+            // R8: shrink + obfuscate + optimise. Full mode is enabled in gradle.properties.
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 

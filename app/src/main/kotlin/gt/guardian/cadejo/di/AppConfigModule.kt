@@ -12,7 +12,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppConfigModule {
-
     @Provides
     @Singleton
     fun provideLeaderboardConfig(): LeaderboardConfig =

@@ -1,14 +1,12 @@
 package gt.guardian.cadejo.domain.run
 
 import gt.guardian.cadejo.domain.model.Balance
-import gt.guardian.cadejo.domain.model.GameStatus
 import gt.guardian.cadejo.domain.model.Intent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RunEngineTest {
-
     @Test
     fun `a new run starts on level one, running`() {
         val run = RunEngine.newRun(seed = 100L)

@@ -15,16 +15,20 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val repository: SettingsRepository,
 ) : ViewModel() {
-
-    val settings: StateFlow<GameSettings> = repository.settings.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = GameSettings(),
-    )
+    val settings: StateFlow<GameSettings> =
+        repository.settings.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = GameSettings(),
+        )
 
     fun setColorblind(enabled: Boolean) = viewModelScope.launch { repository.setColorblindMode(enabled) }.let {}
+
     fun setReduceMotion(enabled: Boolean) = viewModelScope.launch { repository.setReduceMotion(enabled) }.let {}
+
     fun setSound(enabled: Boolean) = viewModelScope.launch { repository.setSound(enabled) }.let {}
+
     fun setMusic(enabled: Boolean) = viewModelScope.launch { repository.setMusic(enabled) }.let {}
+
     fun setHaptics(enabled: Boolean) = viewModelScope.launch { repository.setHaptics(enabled) }.let {}
 }

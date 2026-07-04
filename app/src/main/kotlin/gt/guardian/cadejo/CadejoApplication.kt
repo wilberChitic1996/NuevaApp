@@ -18,7 +18,6 @@ import javax.inject.Inject
  */
 @HiltAndroidApp
 class CadejoApplication : Application() {
-
     @Inject lateinit var activityHolder: CurrentActivityHolder
 
     override fun onCreate() {
@@ -26,25 +25,39 @@ class CadejoApplication : Application() {
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
-        registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacksAdapter() {
-            override fun onActivityResumed(activity: Activity) {
-                activityHolder.current = activity
-            }
+        registerActivityLifecycleCallbacks(
+            object : ActivityLifecycleCallbacksAdapter() {
+                override fun onActivityResumed(activity: Activity) {
+                    activityHolder.current = activity
+                }
 
-            override fun onActivityPaused(activity: Activity) {
-                if (activityHolder.current === activity) activityHolder.current = null
-            }
-        })
+                override fun onActivityPaused(activity: Activity) {
+                    if (activityHolder.current === activity) activityHolder.current = null
+                }
+            },
+        )
     }
 }
 
 /** No-op base so callbacks only override what they need. */
 private abstract class ActivityLifecycleCallbacksAdapter : Application.ActivityLifecycleCallbacks {
-    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+    override fun onActivityCreated(
+        activity: Activity,
+        savedInstanceState: Bundle?,
+    ) {}
+
     override fun onActivityStarted(activity: Activity) {}
+
     override fun onActivityResumed(activity: Activity) {}
+
     override fun onActivityPaused(activity: Activity) {}
+
     override fun onActivityStopped(activity: Activity) {}
-    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+
+    override fun onActivitySaveInstanceState(
+        activity: Activity,
+        outState: Bundle,
+    ) {}
+
     override fun onActivityDestroyed(activity: Activity) {}
 }
