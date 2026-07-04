@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shop_title">Altar de Ofrendas</string>
+    <string name="shop_coins">%1$d monedas</string>
+    <string name="shop_cost">%1$d monedas</string>
+    <string name="shop_owned_label">Adquirido</string>
+    <string name="shop_buy">Comprar</string>
+    <string name="shop_equip">Equipar</string>
+    <string name="shop_equipped">Equipado</string>
+    <string name="shop_active">Activo</string>
+    <string name="shop_back">Volver</string>
+
+    <string name="shop_feedback_bought">¡Desbloqueado!</string>
+    <string name="shop_feedback_owned">Ya lo tenés.</string>
+    <string name="shop_feedback_poor">Monedas insuficientes.</string>
+
+    <string name="unlock_skin_jade">Cadejo Jade</string>
+    <string name="unlock_skin_obsidian">Cadejo Obsidiana</string>
+    <string name="unlock_skin_dawn">Cadejo Amanecer</string>
+    <string name="unlock_mod_swift">Veloz (−1 recarga)</string>
+    <string name="unlock_mod_ward">Guarda (empezás con escudo)</string>
+</resources>

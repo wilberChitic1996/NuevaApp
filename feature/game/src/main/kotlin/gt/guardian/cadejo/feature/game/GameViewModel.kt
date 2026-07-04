@@ -1,17 +1,23 @@
 package gt.guardian.cadejo.feature.game
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gt.guardian.cadejo.domain.hex.Hex
 import gt.guardian.cadejo.domain.model.AbilityId
 import gt.guardian.cadejo.domain.model.Balance
 import gt.guardian.cadejo.domain.model.Intent
+import gt.guardian.cadejo.domain.progress.ProgressRepository
+import gt.guardian.cadejo.domain.progress.RunOutcome
+import gt.guardian.cadejo.domain.progress.RunRecord
 import gt.guardian.cadejo.domain.run.RunEngine
 import gt.guardian.cadejo.domain.run.RunState
+import gt.guardian.cadejo.domain.run.RunStatus
 import gt.guardian.cadejo.domain.session.SeedSource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /** Everything the game screen needs to render, in one immutable value. */
@@ -30,6 +36,7 @@ data class GameUiState(
 @HiltViewModel
 class GameViewModel @Inject constructor(
     private val seedSource: SeedSource,
+    private val progressRepository: ProgressRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(GameUiState(run = RunEngine.newRun(seedSource.newSeed())))
@@ -73,7 +80,24 @@ class GameViewModel @Inject constructor(
     private fun apply(intent: Intent) {
         val s = _uiState.value
         if (s.run.isOver) return
-        _uiState.value = s.copy(run = RunEngine.apply(s.run, intent), leapArming = false, highlight = emptySet())
+        val newRun = RunEngine.apply(s.run, intent)
+        _uiState.value = s.copy(run = newRun, leapArming = false, highlight = emptySet())
+
+        // Pay out coins and record the run exactly once, on the transition to over.
+        if (!s.run.isOver && newRun.isOver) {
+            awardRun(newRun)
+        }
+    }
+
+    private fun awardRun(run: RunState) {
+        val record = RunRecord(
+            seed = run.seed,
+            mode = run.mode,
+            reachedLevel = run.levelIndex,
+            score = run.score,
+            outcome = if (run.status == RunStatus.COMPLETED) RunOutcome.COMPLETED else RunOutcome.FAILED,
+        )
+        viewModelScope.launch { progressRepository.awardRun(record) }
     }
 
     private fun clearLeapArming() {

@@ -5,11 +5,26 @@ plugins {
 
 android {
     namespace = "gt.guardian.cadejo.core.data"
+
+    // Room exports its schema JSON so migrations can be reviewed and tested.
+    ksp {
+        arg("room.schemaLocation", "$projectDir/schemas")
+        arg("room.generateKotlin", "true")
+    }
 }
 
 // :core:data implements the interfaces declared by :core:domain and owns all the
-// framework-touching concerns (persistence, randomness, networking). Phase 1 only
-// needs the seed source; Room + DataStore + the signed save arrive in Phase 3.
+// framework-touching concerns: Room persistence, the Android Keystore HMAC signer,
+// DataStore settings, and (later phases) networking, ads and billing.
 dependencies {
     implementation(project(":core:domain"))
+
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.kotlinx.coroutines.android)
+
+    testImplementation(libs.kotlinx.coroutines.test)
 }
