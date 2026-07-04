@@ -6,7 +6,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SeededRngTest {
-
     @Test
     fun `same seed produces identical sequence`() {
         val a = SeededRng(42)

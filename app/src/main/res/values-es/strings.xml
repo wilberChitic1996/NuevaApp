@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Cadejo</string>
+    <string name="app_title">Cadejo</string>
+    <string name="app_tagline">Guardián de la Noche</string>
+
+    <string name="menu_play">Jugar</string>
+    <string name="menu_daily">Reto Diario</string>
+    <string name="menu_shop">Altar (Tienda)</string>
+    <string name="menu_settings">Ajustes</string>
+
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_colorblind">Modo daltónico</string>
+    <string name="settings_reduce_motion">Reducir movimiento</string>
+    <string name="settings_sound">Efectos de sonido</string>
+    <string name="settings_music">Música</string>
+    <string name="settings_haptics">Vibración</string>
+    <string name="settings_back">Volver</string>
 </resources>

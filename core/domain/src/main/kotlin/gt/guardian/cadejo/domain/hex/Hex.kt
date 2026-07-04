@@ -15,8 +15,9 @@ import kotlin.math.abs
  * cheap to use as a map key, and immutable (which the pure game engine relies on).
  */
 @JvmInline
-value class Hex private constructor(private val packed: Long) {
-
+value class Hex private constructor(
+    private val packed: Long,
+) {
     constructor(q: Int, r: Int) : this((q.toLong() and 0xFFFFFFFFL) or (r.toLong() shl 32))
 
     val q: Int get() = packed.toInt()
@@ -26,6 +27,7 @@ value class Hex private constructor(private val packed: Long) {
     val s: Int get() = -q - r
 
     operator fun plus(other: Hex): Hex = Hex(q + other.q, r + other.r)
+
     operator fun minus(other: Hex): Hex = Hex(q - other.q, r - other.r)
 
     /** Grid distance in steps between this hex and [other]. */
@@ -49,17 +51,21 @@ value class Hex private constructor(private val packed: Long) {
          * The order is part of the game's contract: enemy movement breaks ties
          * by this order, so changing it would change every generated run.
          */
-        val DIRECTIONS: List<Hex> = listOf(
-            Hex(1, 0),   // E
-            Hex(1, -1),  // NE
-            Hex(0, -1),  // NW
-            Hex(-1, 0),  // W
-            Hex(-1, 1),  // SW
-            Hex(0, 1),   // SE
-        )
+        val DIRECTIONS: List<Hex> =
+            listOf(
+                Hex(1, 0), // E
+                Hex(1, -1), // NE
+                Hex(0, -1), // NW
+                Hex(-1, 0), // W
+                Hex(-1, 1), // SW
+                Hex(0, 1), // SE
+            )
 
         /** All hexes within [radius] steps of [center] (a filled hexagon). */
-        fun disc(center: Hex, radius: Int): Set<Hex> {
+        fun disc(
+            center: Hex,
+            radius: Int,
+        ): Set<Hex> {
             val result = LinkedHashSet<Hex>()
             for (dq in -radius..radius) {
                 val rMin = maxOf(-radius, -dq - radius)

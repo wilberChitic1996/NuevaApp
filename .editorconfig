@@ -1,0 +1,24 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+# ktlint rules. Relax the ones that clash with this project's deliberate style
+# (long descriptive comments, multi-target Compose signatures, wildcard-free imports).
+max_line_length = off
+ktlint_standard_no-wildcard-imports = disabled
+ktlint_standard_function-naming = disabled
+ktlint_standard_filename = disabled
+ktlint_standard_comment-wrapping = disabled
+ktlint_standard_annotation = disabled
+ktlint_standard_backing-property-naming = disabled
+ktlint_function_signature_body_expression_wrapping = default
+
+[*.{yml,yaml,json,xml}]
+indent_size = 2

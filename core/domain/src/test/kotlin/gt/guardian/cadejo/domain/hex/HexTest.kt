@@ -5,12 +5,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class HexTest {
-
     @Test
     fun `cube coordinate always sums to zero`() {
-        for (q in -5..5) for (r in -5..5) {
-            val h = Hex(q, r)
-            assertEquals(0, h.q + h.r + h.s)
+        for (q in -5..5) {
+            for (r in -5..5) {
+                val h = Hex(q, r)
+                assertEquals(0, h.q + h.r + h.s)
+            }
         }
     }
 

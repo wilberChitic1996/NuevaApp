@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shop_title">Shrine of Offerings</string>
+    <string name="shop_coins">%1$d coins</string>
+    <string name="shop_cost">%1$d coins</string>
+    <string name="shop_owned_label">Owned</string>
+    <string name="shop_buy">Buy</string>
+    <string name="shop_equip">Equip</string>
+    <string name="shop_equipped">Equipped</string>
+    <string name="shop_active">Active</string>
+    <string name="shop_back">Back</string>
+
+    <string name="shop_remove_ads">Remove ads</string>
+    <string name="shop_ads_removed">Removed ✓</string>
+
+    <string name="shop_feedback_bought">Unlocked!</string>
+    <string name="shop_feedback_owned">Already owned.</string>
+    <string name="shop_feedback_poor">Not enough coins.</string>
+
+    <string name="unlock_skin_jade">Jade Cadejo</string>
+    <string name="unlock_skin_obsidian">Obsidian Cadejo</string>
+    <string name="unlock_skin_dawn">Dawn Cadejo</string>
+    <string name="unlock_mod_swift">Swift (−1 cooldown)</string>
+    <string name="unlock_mod_ward">Ward (start with a shield)</string>
+</resources>

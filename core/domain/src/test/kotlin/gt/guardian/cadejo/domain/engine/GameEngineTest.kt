@@ -1,6 +1,7 @@
 package gt.guardian.cadejo.domain.engine
 
 import gt.guardian.cadejo.domain.hex.Hex
+import gt.guardian.cadejo.domain.model.AbilityId
 import gt.guardian.cadejo.domain.model.Board
 import gt.guardian.cadejo.domain.model.Enemy
 import gt.guardian.cadejo.domain.model.GameState
@@ -9,123 +10,165 @@ import gt.guardian.cadejo.domain.model.Intent
 import gt.guardian.cadejo.domain.model.PatternType
 import gt.guardian.cadejo.domain.model.SpiritKind
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class GameEngineTest {
-
     private fun baseState(
         player: Hex = Hex(0, 0),
+        traveler: Hex = Hex(-1, 0),
         goal: Hex = Hex(3, 0),
         enemies: List<Enemy> = emptyList(),
     ) = GameState(
-        board = Board.hexagon(3),
+        board = Board.hexagon(4),
         player = player,
+        traveler = traveler,
         enemies = enemies,
         goal = goal,
         seed = 1,
         rngState = 0,
     )
 
+    private fun enemy(
+        pos: Hex,
+        pattern: PatternType = PatternType.CHASE,
+    ) =
+        Enemy("e", SpiritKind.LLORONA, pos, pattern)
+
     @Test
     fun `legal move relocates the player and advances the turn`() {
-        val state = baseState()
-        val target = Hex(1, 0)
-        val next = GameEngine.reduce(state, Intent.Move(target))
-
-        assertEquals(target, next.player)
+        val next = GameEngine.reduce(baseState(), Intent.Move(Hex(1, 0)))
+        assertEquals(Hex(1, 0), next.player)
         assertEquals(1, next.turn)
         assertEquals(GameStatus.PLAYING, next.status)
     }
 
     @Test
-    fun `illegal move to a non-adjacent hex is ignored`() {
+    fun `non-adjacent move is a no-op that does not spend a turn`() {
         val state = baseState()
         val next = GameEngine.reduce(state, Intent.Move(Hex(3, 0)))
-        // Player unchanged; with no enemies the state is effectively identical.
-        assertEquals(state.player, next.player)
+        assertSame(state, next)
     }
 
     @Test
-    fun `move off the board is ignored`() {
-        val state = baseState(player = Hex(3, 0)) // on the rim of a radius-3 board
-        val offBoard = Hex(4, 0)
-        val next = GameEngine.reduce(state, Intent.Move(offBoard))
-        assertEquals(Hex(3, 0), next.player)
+    fun `moving onto the traveler is illegal`() {
+        val state = baseState(player = Hex(0, 0), traveler = Hex(1, 0))
+        val next = GameEngine.reduce(state, Intent.Move(Hex(1, 0)))
+        assertSame(state, next)
     }
 
     @Test
-    fun `reaching the goal wins`() {
+    fun `reaching the goal wins and awards score`() {
         val state = baseState(player = Hex(2, 0), goal = Hex(3, 0))
         val next = GameEngine.reduce(state, Intent.Move(Hex(3, 0)))
         assertEquals(GameStatus.WON, next.status)
+        assertTrue("score should be positive after a win", next.score > 0)
     }
 
     @Test
-    fun `game over state is a fixed point`() {
+    fun `game over is a fixed point`() {
         val won = baseState().copy(status = GameStatus.WON)
-        val next = GameEngine.reduce(won, Intent.Move(Hex(1, 0)))
-        assertSame(won, next)
+        assertSame(won, GameEngine.reduce(won, Intent.Move(Hex(1, 0))))
     }
 
     @Test
     fun `stepping onto an enemy loses`() {
-        val enemy = Enemy("e", SpiritKind.CADEJO_NEGRO, Hex(1, 0), PatternType.CHASE)
-        val state = baseState(player = Hex(0, 0), enemies = listOf(enemy))
+        val state = baseState(enemies = listOf(enemy(Hex(1, 0))))
         val next = GameEngine.reduce(state, Intent.Move(Hex(1, 0)))
         assertEquals(GameStatus.LOST, next.status)
     }
 
     @Test
-    fun `enemy catching the player after its move loses`() {
-        // Enemy adjacent to where the player waits; on the enemy's turn it steps in.
-        val enemy = Enemy("e", SpiritKind.LLORONA, Hex(2, 0), PatternType.CHASE)
-        val state = baseState(player = Hex(0, 0), goal = Hex(-3, 1), enemies = listOf(enemy))
-
-        // Player waits; enemy moves from (2,0) -> (1,0), still not adjacent-capture.
-        val afterWait = GameEngine.reduce(state, Intent.Wait)
-        assertEquals(GameStatus.PLAYING, afterWait.status)
-        assertEquals(1, afterWait.enemies.first().position.distanceTo(Hex(0, 0)))
-
-        // Player waits again; enemy steps onto the player.
-        val afterSecond = GameEngine.reduce(afterWait, Intent.Wait)
-        assertEquals(GameStatus.LOST, afterSecond.status)
-    }
-
-    @Test
-    fun `stunned enemy does not move and its timer decrements`() {
-        val enemy = Enemy("e", SpiritKind.SOMBRERON, Hex(2, 0), PatternType.CHASE, stunnedTurns = 1)
-        val state = baseState(player = Hex(0, 0), goal = Hex(-3, 0), enemies = listOf(enemy))
-        val next = GameEngine.reduce(state, Intent.Wait)
-
-        val movedEnemy = next.enemies.first()
-        assertEquals(Hex(2, 0), movedEnemy.position) // stayed put
-        assertEquals(0, movedEnemy.stunnedTurns)     // timer ticked down
-    }
-
-    @Test
-    fun `a fixed sequence of intents is fully deterministic`() {
-        val start = baseState(player = Hex(0, 0), goal = Hex(-3, 0), enemies = listOf(
-            Enemy("e", SpiritKind.CADEJO_NEGRO, Hex(3, 0), PatternType.CHASE),
-        ))
-        val intents = listOf(
-            Intent.Move(Hex(-1, 0)),
-            Intent.Move(Hex(-1, 0)),
-            Intent.Wait,
-            Intent.Move(Hex(-1, 1)),
+    fun `the traveler trails toward the player`() {
+        val state = baseState(player = Hex(0, 0), traveler = Hex(-3, 0), goal = Hex(3, 0))
+        val next = GameEngine.reduce(state, Intent.Move(Hex(1, 0)))
+        assertTrue(
+            "traveler should close distance to the player",
+            next.traveler.distanceTo(next.player) < Hex(-3, 0).distanceTo(Hex(1, 0)),
         )
-        val runA = intents.fold(start) { s, i -> GameEngine.reduce(s, i) }
-        val runB = intents.fold(start) { s, i -> GameEngine.reduce(s, i) }
-        assertEquals(runA, runB)
     }
 
     @Test
-    fun `enemy actually advances toward a waiting player`() {
-        val enemy = Enemy("e", SpiritKind.LLORONA, Hex(3, 0), PatternType.CHASE)
-        val state = baseState(player = Hex(0, 0), goal = Hex(-3, 0), enemies = listOf(enemy))
-        val next = GameEngine.reduce(state, Intent.Wait)
-        assertNotEquals(Hex(3, 0), next.enemies.first().position)
-        assertEquals(2, next.enemies.first().position.distanceTo(Hex(0, 0)))
+    fun `howl stuns nearby enemies which then hold position`() {
+        val e = enemy(Hex(2, 0)) // distance 2 from player at origin
+        val state = baseState(player = Hex(0, 0), traveler = Hex(-1, 0), goal = Hex(-4, 0), enemies = listOf(e))
+        val next = GameEngine.reduce(state, Intent.UseAbility(AbilityId.HOWL))
+
+        val stunned = next.enemies.first()
+        assertEquals("stunned enemy holds position", Hex(2, 0), stunned.position)
+        assertTrue("stun timer is set", stunned.stunnedTurns >= 1)
+        assertTrue("howl went on cooldown", next.ability(AbilityId.HOWL)!!.remaining > 0)
+    }
+
+    @Test
+    fun `leap moves within range and goes on cooldown`() {
+        val state = baseState(player = Hex(0, 0), traveler = Hex(-1, 0), goal = Hex(4, 0))
+        val target = Hex(2, 0) // distance 2 — within LEAP_RANGE
+        val next = GameEngine.reduce(state, Intent.UseAbility(AbilityId.LEAP, target))
+        assertEquals(target, next.player)
+        assertTrue(next.ability(AbilityId.LEAP)!!.remaining > 0)
+    }
+
+    @Test
+    fun `leap beyond range is rejected`() {
+        val state = baseState(player = Hex(0, 0), goal = Hex(4, 0))
+        val next = GameEngine.reduce(state, Intent.UseAbility(AbilityId.LEAP, Hex(3, 0)))
+        assertSame(state, next)
+    }
+
+    @Test
+    fun `protective light shields the traveler`() {
+        val state = baseState()
+        val next = GameEngine.reduce(state, Intent.UseAbility(AbilityId.PROTECTIVE_LIGHT))
+        assertTrue("shield is active", next.travelerShield > 0)
+        assertTrue("light went on cooldown", next.ability(AbilityId.PROTECTIVE_LIGHT)!!.remaining > 0)
+    }
+
+    @Test
+    fun `an ability on cooldown is a no-op`() {
+        val cooling =
+            baseState().let { s ->
+                s.copy(abilities = s.abilities.map { if (it.id == AbilityId.HOWL) it.triggered() else it })
+            }
+        val next = GameEngine.reduce(cooling, Intent.UseAbility(AbilityId.HOWL))
+        assertSame(cooling, next)
+    }
+
+    @Test
+    fun `a fixed sequence of intents is deterministic`() {
+        val start =
+            baseState(
+                player = Hex(0, 0),
+                traveler = Hex(-1, 0),
+                goal = Hex(-4, 0),
+                enemies = listOf(enemy(Hex(3, 0), PatternType.CHASE)),
+            )
+        val intents =
+            listOf(
+                Intent.Move(Hex(-1, 1)),
+                Intent.UseAbility(AbilityId.HOWL),
+                Intent.Wait,
+                Intent.Move(Hex(-2, 1)),
+            )
+        val a = intents.fold(start) { s, i -> GameEngine.reduce(s, i) }
+        val b = intents.fold(start) { s, i -> GameEngine.reduce(s, i) }
+        assertEquals(a, b)
+    }
+
+    @Test
+    fun `a passive escort is eventually caught`() {
+        var s =
+            GameState(
+                board = Board.hexagon(3),
+                player = Hex(0, 0),
+                traveler = Hex(1, 0),
+                enemies = listOf(enemy(Hex(2, 0), PatternType.CHASE)),
+                goal = Hex(-3, 0),
+                seed = 1,
+                rngState = 0,
+            )
+        repeat(40) { if (!s.isOver) s = GameEngine.reduce(s, Intent.Wait) }
+        assertEquals(GameStatus.LOST, s.status)
     }
 }

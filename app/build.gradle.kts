@@ -1,8 +1,20 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.cadejo.android.application)
     alias(libs.plugins.cadejo.android.compose)
     alias(libs.plugins.cadejo.android.hilt)
 }
+
+// Read sensitive config from local.properties (git-ignored) or, in CI, from
+// environment variables. NEVER hardcoded, NEVER committed.
+val secrets =
+    Properties().apply {
+        val f = rootProject.file("local.properties")
+        if (f.exists()) f.inputStream().use { load(it) }
+    }
+
+fun secret(key: String): String = (secrets.getProperty(key) ?: System.getenv(key) ?: "")
 
 android {
     namespace = "gt.guardian.cadejo"
@@ -11,6 +23,32 @@ android {
         applicationId = "gt.guardian.cadejo"
         versionCode = 1
         versionName = "0.1.0"
+
+        // Injected into BuildConfig at build time; blank in dev => features that
+        // need them (leaderboard) simply stay disabled.
+        buildConfigField("String", "SUPABASE_URL", "\"${secret("SUPABASE_URL")}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${secret("SUPABASE_ANON_KEY")}\"")
+
+        // AdMob application id goes into the manifest via a placeholder. Defaults to
+        // Google's official TEST app id so dev builds never hit a real account.
+        val admobAppId = secret("ADMOB_APP_ID").ifBlank { "ca-app-pub-3940256099942544~3347511713" }
+        manifestPlaceholders["admobAppId"] = admobAppId
+    }
+
+    // Release signing from secrets (local.properties or CI env). If no keystore is
+    // configured the release build stays unsigned — CI provides the real values.
+    // Play App Signing means this upload key is only for the bundle you upload.
+    val releaseStoreFile = secret("RELEASE_STORE_FILE")
+    val hasReleaseSigning = releaseStoreFile.isNotBlank() && rootProject.file(releaseStoreFile).exists()
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = rootProject.file(releaseStoreFile)
+                storePassword = secret("RELEASE_STORE_PASSWORD")
+                keyAlias = secret("RELEASE_KEY_ALIAS")
+                keyPassword = secret("RELEASE_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -19,14 +57,16 @@ android {
             applicationIdSuffix = ".debug"
         }
         getByName("release") {
-            // R8: shrink + obfuscate + optimise. Full mode is enabled in
-            // gradle.properties. Release signing is wired in Phase 6.
+            // R8: shrink + obfuscate + optimise. Full mode is enabled in gradle.properties.
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
@@ -46,5 +86,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.hilt.navigation.compose)
     implementation(libs.timber)
 }

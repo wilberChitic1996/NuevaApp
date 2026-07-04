@@ -13,11 +13,15 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ChasePatternTest {
-
-    private fun stateWith(player: Hex, enemy: Hex, board: Board): GameState =
+    private fun stateWith(
+        traveler: Hex,
+        enemy: Hex,
+        board: Board,
+    ): GameState =
         GameState(
             board = board,
-            player = player,
+            player = Hex(0, 0),
+            traveler = traveler,
             enemies = listOf(Enemy("e", SpiritKind.LLORONA, enemy, PatternType.CHASE)),
             goal = Hex(0, 0),
             seed = 0,
@@ -25,61 +29,57 @@ class ChasePatternTest {
         )
 
     @Test
-    fun `chaser steps one closer on open board`() {
+    fun `chaser steps one closer to the target on open board`() {
         val board = Board.hexagon(3)
-        val player = Hex(0, 0)
+        val target = Hex(0, 0)
         val enemy = Hex(3, 0)
-        val state = stateWith(player, enemy, board)
+        val state = stateWith(traveler = target, enemy = enemy, board = board)
 
-        val next = ChasePattern.nextMove(state, state.enemies.first())
+        val moved = ChasePattern.step(state, state.enemies.first(), target, blocked = emptySet())
 
-        assertEquals(1, enemy.distanceTo(next)) // moved exactly one step
-        assertTrue(next.distanceTo(player) < enemy.distanceTo(player)) // and got closer
-        assertEquals(2, next.distanceTo(player))
+        assertEquals(1, enemy.distanceTo(moved.position))
+        assertEquals(2, moved.position.distanceTo(target))
     }
 
     @Test
-    fun `chaser routes around a wall instead of through it`() {
-        // Build a board where a wall sits directly between enemy and player.
+    fun `chaser routes around a wall`() {
         val base = Board.hexagon(3).cells.toMutableMap()
         val wall = Hex(1, 0)
         base[wall] = Cell(wall, Terrain.WALL)
         val board = Board(base)
 
-        val player = Hex(0, 0)
+        val target = Hex(0, 0)
         val enemy = Hex(2, 0)
-        val state = stateWith(player, enemy, board)
+        val state = stateWith(target, enemy, board)
 
-        val next = ChasePattern.nextMove(state, state.enemies.first())
+        val moved = ChasePattern.step(state, state.enemies.first(), target, blocked = emptySet())
 
-        assertTrue("must not step onto the wall", next != wall)
-        assertTrue("must stay on the board", board.isWalkable(next))
-        assertTrue("must actually move (route around the wall)", next != enemy)
-        // Note: straight-line hex distance need NOT drop when routing around an
-        // obstacle — the meaningful progress is along the *path*. Here (2,0)->(2,-1)
-        // keeps hex distance at 2 but shortens the walkable path from 3 to 2.
-        assertEquals(1, enemy.distanceTo(next)) // exactly one step
+        assertTrue(moved.position != wall)
+        assertTrue(board.isWalkable(moved.position))
+        assertEquals(1, enemy.distanceTo(moved.position))
     }
 
     @Test
-    fun `boxed-in chaser stays put`() {
-        // Enemy fully surrounded by walls has nowhere to make progress.
-        val enemy = Hex(0, 0)
-        val cells = mutableMapOf(enemy to Cell(enemy, Terrain.FLOOR))
-        enemy.neighbors().forEach { cells[it] = Cell(it, Terrain.WALL) }
-        val board = Board(cells)
-        val state = stateWith(Hex(3, 0), enemy, board)
+    fun `blocked cells are respected`() {
+        val board = Board.hexagon(3)
+        val target = Hex(0, 0)
+        val enemy = Hex(2, 0)
+        val state = stateWith(target, enemy, board)
 
-        val next = ChasePattern.nextMove(state, state.enemies.first())
-        assertEquals(enemy, next)
+        // Block the natural next step; the chaser must pick a different neighbour.
+        val naturalStep = ChasePattern.step(state, state.enemies.first(), target, emptySet()).position
+        val moved = ChasePattern.step(state, state.enemies.first(), target, blocked = setOf(naturalStep))
+
+        assertTrue(moved.position != naturalStep)
+        assertEquals(1, enemy.distanceTo(moved.position))
     }
 
     @Test
-    fun `chase decision is deterministic`() {
+    fun `decision is deterministic`() {
         val board = Board.hexagon(4)
         val state = stateWith(Hex(0, 0), Hex(4, -2), board)
-        val a = ChasePattern.nextMove(state, state.enemies.first())
-        val b = ChasePattern.nextMove(state, state.enemies.first())
+        val a = ChasePattern.step(state, state.enemies.first(), Hex(0, 0), emptySet())
+        val b = ChasePattern.step(state, state.enemies.first(), Hex(0, 0), emptySet())
         assertEquals(a, b)
     }
 }
