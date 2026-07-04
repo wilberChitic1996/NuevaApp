@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Spanish strings for the game feature. -->
+<resources>
+    <string name="game_hud_level">Nivel %1$d</string>
+    <string name="game_hud_turn">Turno %1$d</string>
+    <string name="game_action_wait">Esperar</string>
+    <string name="game_action_restart">Reiniciar</string>
+    <string name="game_status_won">¡El viajero está a salvo!</string>
+    <string name="game_status_lost">La noche te alcanzó…</string>
+</resources>
