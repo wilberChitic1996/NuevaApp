@@ -4,7 +4,7 @@ import gt.guardian.cadejo.domain.hex.Hex
 
 /** The kinds of nocturnal spirit that hunt the traveler, each with its own movement pattern. */
 enum class SpiritKind {
-    /** The black Cadejo — mirrors and chases the player. */
+    /** The black Cadejo — mirrors the player's movement. */
     CADEJO_NEGRO,
 
     /** La Llorona — a relentless chaser. */
@@ -16,23 +16,24 @@ enum class SpiritKind {
 
 /** The rule an enemy follows to choose its next hex each turn. */
 enum class PatternType {
-    /** Move one step along the shortest path toward the player. */
+    /** Move one step along the shortest path toward the target (the traveler). */
     CHASE,
 
-    /** Follow a fixed cyclic route (used from Phase 2). */
+    /** Follow a fixed cyclic route. */
     PATROL,
 
-    /** Mirror the player's last move (used from Phase 2). */
+    /** Repeat the player's last move direction. */
     MIRROR,
 }
 
 /**
- * An enemy spirit on the board. Immutable: the engine produces a new [Enemy]
- * (via [copy]) each turn rather than mutating in place.
+ * An enemy spirit on the board. Immutable: the engine produces a new [Enemy] each
+ * turn rather than mutating in place.
  *
- * @param stunnedTurns turns remaining that the enemy is paralysed (by the Howl
- *   ability). While > 0 the enemy does not move. Wired for Phase 1 so the Howl
- *   mechanic in a later phase needs no state changes here.
+ * @param stunnedTurns turns remaining that the enemy is paralysed (by Howl). While
+ *   > 0 the enemy does not move.
+ * @param patrolRoute for [PatternType.PATROL]: the waypoints it cycles through.
+ * @param patrolIndex the current waypoint index within [patrolRoute].
  */
 data class Enemy(
     val id: String,
@@ -40,4 +41,6 @@ data class Enemy(
     val position: Hex,
     val pattern: PatternType,
     val stunnedTurns: Int = 0,
+    val patrolRoute: List<Hex> = emptyList(),
+    val patrolIndex: Int = 0,
 )

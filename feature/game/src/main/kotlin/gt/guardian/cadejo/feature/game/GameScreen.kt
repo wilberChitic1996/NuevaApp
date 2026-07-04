@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -21,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -31,57 +33,73 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import gt.guardian.cadejo.core.ui.board.HexBoard
 import gt.guardian.cadejo.core.ui.theme.CadejoColors
+import gt.guardian.cadejo.domain.model.AbilityId
+import gt.guardian.cadejo.domain.model.Balance
 import gt.guardian.cadejo.domain.model.GameState
-import gt.guardian.cadejo.domain.model.GameStatus
+import gt.guardian.cadejo.domain.run.RunStatus
 
-/**
- * Entry point for the game feature. Grabs the Hilt-scoped [GameViewModel] and
- * renders the stateless [GameScreen]. Splitting route (stateful) from screen
- * (stateless) keeps the screen easy to preview and test.
- */
 @Composable
 fun GameRoute(modifier: Modifier = Modifier) {
     val viewModel: GameViewModel = hiltViewModel()
-    val state by viewModel.state.collectAsState()
+    val ui by viewModel.uiState.collectAsState()
     GameScreen(
-        state = state,
+        ui = ui,
         modifier = modifier,
         onHexTap = viewModel::onHexTap,
         onWait = viewModel::onWait,
+        onHowl = viewModel::onHowl,
+        onToggleLeap = viewModel::onToggleLeap,
+        onProtect = viewModel::onProtect,
         onRestart = viewModel::onRestart,
     )
 }
 
 @Composable
 fun GameScreen(
-    state: GameState,
+    ui: GameUiState,
     modifier: Modifier = Modifier,
     colorblind: Boolean = false,
     onHexTap: (gt.guardian.cadejo.domain.hex.Hex) -> Unit = {},
     onWait: () -> Unit = {},
+    onHowl: () -> Unit = {},
+    onToggleLeap: () -> Unit = {},
+    onProtect: () -> Unit = {},
     onRestart: () -> Unit = {},
 ) {
+    val run = ui.run
+    val game = run.current
+
     Surface(modifier = modifier.fillMaxSize(), color = CadejoColors.NightDeep) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Hud(state)
+            Hud(game, run.levelIndex)
 
-            Spacer(Modifier.heightIn(min = 12.dp))
+            Spacer(Modifier.heightIn(min = 8.dp))
 
             HexBoard(
-                state = state,
+                state = game,
                 colorblind = colorblind,
+                highlight = ui.highlight,
                 onHexTap = onHexTap,
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            StatusBanner(state)
+            RunBanner(run.status, game.score)
 
-            Spacer(Modifier.heightIn(min = 12.dp))
+            Spacer(Modifier.heightIn(min = 8.dp))
+
+            AbilityBar(
+                game = game,
+                enabled = !run.isOver,
+                leapArming = ui.leapArming,
+                onHowl = onHowl,
+                onToggleLeap = onToggleLeap,
+                onProtect = onProtect,
+            )
+
+            Spacer(Modifier.heightIn(min = 8.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -89,18 +107,14 @@ fun GameScreen(
             ) {
                 OutlinedButton(
                     onClick = onWait,
-                    enabled = !state.isOver,
-                    modifier = Modifier
-                        .weight(1f)
-                        .heightIn(min = 48.dp) // accessible touch target
+                    enabled = !run.isOver,
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
                         .semantics { contentDescription = "Esperar un turno" },
                 ) { Text(stringResource(R.string.game_action_wait)) }
 
                 Button(
                     onClick = onRestart,
-                    modifier = Modifier
-                        .weight(1f)
-                        .heightIn(min = 48.dp)
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
                         .semantics { contentDescription = "Reiniciar la partida" },
                 ) { Text(stringResource(R.string.game_action_restart)) }
             }
@@ -109,49 +123,103 @@ fun GameScreen(
 }
 
 @Composable
-private fun Hud(state: GameState) {
+private fun Hud(game: GameState, levelIndex: Int) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) {},
+        modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {},
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(
-            text = stringResource(R.string.game_hud_level, state.level),
+            text = stringResource(R.string.game_hud_level, levelIndex, Balance.LEVELS_PER_RUN),
             color = CadejoColors.OnNight,
             style = MaterialTheme.typography.titleMedium,
         )
         Text(
-            text = stringResource(R.string.game_hud_turn, state.turn),
-            color = CadejoColors.OnNightDim,
+            text = stringResource(R.string.game_hud_score, game.score),
+            color = CadejoColors.GoldSoft,
             style = MaterialTheme.typography.titleMedium,
         )
     }
 }
 
 @Composable
-private fun StatusBanner(state: GameState) {
-    // Fade the banner in when the level ends — a small, cheap animate*AsState use
-    // that avoids recomposing anything else.
-    val target = if (state.isOver) 1f else 0f
-    val alpha by animateFloatAsState(targetValue = target, animationSpec = tween(400), label = "banner")
-
-    val (text, color) = when (state.status) {
-        GameStatus.WON -> stringResource(R.string.game_status_won) to CadejoColors.GoldSoft
-        GameStatus.LOST -> stringResource(R.string.game_status_lost) to CadejoColors.Llorona
-        GameStatus.PLAYING -> "" to CadejoColors.OnNight
+private fun AbilityBar(
+    game: GameState,
+    enabled: Boolean,
+    leapArming: Boolean,
+    onHowl: () -> Unit,
+    onToggleLeap: () -> Unit,
+    onProtect: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        AbilityButton(
+            label = stringResource(R.string.ability_howl),
+            remaining = game.ability(AbilityId.HOWL)?.remaining ?: 0,
+            enabled = enabled && game.ability(AbilityId.HOWL)?.isReady == true,
+            highlighted = false,
+            onClick = onHowl,
+            modifier = Modifier.weight(1f),
+        )
+        AbilityButton(
+            label = stringResource(R.string.ability_leap),
+            remaining = game.ability(AbilityId.LEAP)?.remaining ?: 0,
+            enabled = enabled && game.ability(AbilityId.LEAP)?.isReady == true,
+            highlighted = leapArming,
+            onClick = onToggleLeap,
+            modifier = Modifier.weight(1f),
+        )
+        AbilityButton(
+            label = stringResource(R.string.ability_protect),
+            remaining = game.ability(AbilityId.PROTECTIVE_LIGHT)?.remaining ?: 0,
+            enabled = enabled && game.ability(AbilityId.PROTECTIVE_LIGHT)?.isReady == true,
+            highlighted = game.travelerShield > 0,
+            onClick = onProtect,
+            modifier = Modifier.weight(1f),
+        )
     }
+}
 
+@Composable
+private fun AbilityButton(
+    label: String,
+    remaining: Int,
+    enabled: Boolean,
+    highlighted: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val text = if (remaining > 0) "$label ($remaining)" else label
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        colors = if (highlighted) {
+            ButtonDefaults.outlinedButtonColors(contentColor = CadejoColors.NightDeep)
+        } else {
+            ButtonDefaults.outlinedButtonColors(contentColor = CadejoColors.GoldSoft)
+        },
+        modifier = modifier.heightIn(min = 48.dp)
+            .semantics { contentDescription = "$label${if (remaining > 0) ", en recarga $remaining turnos" else ", lista"}" },
+    ) { Text(text, textAlign = TextAlign.Center) }
+}
+
+@Composable
+private fun RunBanner(status: RunStatus, score: Int) {
+    val over = status != RunStatus.RUNNING
+    val alpha by animateFloatAsState(if (over) 1f else 0f, animationSpec = tween(400), label = "runBanner")
+    val (text, color) = when (status) {
+        RunStatus.COMPLETED -> stringResource(R.string.run_completed, score) to CadejoColors.GoldSoft
+        RunStatus.FAILED -> stringResource(R.string.run_failed, score) to CadejoColors.Llorona
+        RunStatus.RUNNING -> "" to Color.Transparent
+    }
     Text(
         text = text,
         color = color,
         textAlign = TextAlign.Center,
         fontWeight = FontWeight.Bold,
-        style = MaterialTheme.typography.headlineSmall,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp)
-            .alpha(alpha)
+        style = MaterialTheme.typography.titleLarge,
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp).alpha(alpha)
             .clearAndSetSemantics { contentDescription = text },
     )
 }

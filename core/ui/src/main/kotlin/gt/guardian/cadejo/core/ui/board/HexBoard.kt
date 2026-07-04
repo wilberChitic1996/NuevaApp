@@ -37,6 +37,7 @@ fun HexBoard(
     state: GameState,
     modifier: Modifier = Modifier,
     colorblind: Boolean = false,
+    highlight: Set<Hex> = emptySet(),
     onHexTap: (Hex) -> Unit = {},
 ) {
     // Remember the layout keyed on the current cells so it only recomputes when the
@@ -67,8 +68,10 @@ fun HexBoard(
             layoutHolder.layout = layout
 
             drawCells(state, layout, colorblind)
+            highlight.forEach { drawHighlight(layout, it) }
             drawGoal(state, layout)
             state.enemies.forEach { drawEnemy(it, layout, colorblind) }
+            drawTraveler(layout.toPixel(state.traveler), layout.size, state.travelerShield > 0)
             drawCadejoWhite(layout.toPixel(state.player), layout.size, colorblind)
         }
     }
@@ -89,6 +92,29 @@ private fun DrawScope.drawCells(state: GameState, layout: HexLayout, colorblind:
         val path = hexPath(layout.corners(center))
         drawPath(path, color = fill)
         drawPath(path, color = CadejoColors.HexBorder, style = Stroke(width = layout.size * 0.06f))
+    }
+}
+
+private fun DrawScope.drawHighlight(layout: HexLayout, hex: Hex) {
+    val path = hexPath(layout.corners(layout.toPixel(hex)))
+    drawPath(path, color = CadejoColors.GoldSoft.copy(alpha = 0.28f))
+    drawPath(path, color = CadejoColors.GoldSoft, style = Stroke(width = layout.size * 0.08f))
+}
+
+private fun DrawScope.drawTraveler(center: Offset, s: Float, shielded: Boolean) {
+    // The escortee: a small warm figure (head + cloak triangle) so it reads as a
+    // person distinct from the animal spirits.
+    val cloak = Path().apply {
+        moveTo(center.x, center.y - s * 0.05f)
+        lineTo(center.x + s * 0.22f, center.y + s * 0.3f)
+        lineTo(center.x - s * 0.22f, center.y + s * 0.3f)
+        close()
+    }
+    drawPath(cloak, CadejoColors.Traveler)
+    drawCircle(CadejoColors.Traveler, radius = s * 0.14f, center = Offset(center.x, center.y - s * 0.18f))
+    if (shielded) {
+        // Protective light: a soft cyan-white ring around the traveler.
+        drawCircle(CadejoColors.GoldSoft, radius = s * 0.42f, center = center, style = Stroke(s * 0.09f))
     }
 }
 

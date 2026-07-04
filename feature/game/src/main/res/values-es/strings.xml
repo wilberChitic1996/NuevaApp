@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Spanish strings for the game feature. -->
 <resources>
-    <string name="game_hud_level">Nivel %1$d</string>
-    <string name="game_hud_turn">Turno %1$d</string>
+    <string name="game_hud_level">Nivel %1$d/%2$d</string>
+    <string name="game_hud_score">Puntos: %1$d</string>
     <string name="game_action_wait">Esperar</string>
     <string name="game_action_restart">Reiniciar</string>
+
+    <string name="ability_howl">Aullido</string>
+    <string name="ability_leap">Salto</string>
+    <string name="ability_protect">Escudo</string>
+
+    <string name="run_completed">¡Run completado! %1$d pts</string>
+    <string name="run_failed">La noche te alcanzó… %1$d pts</string>
+
     <string name="game_status_won">¡El viajero está a salvo!</string>
     <string name="game_status_lost">La noche te alcanzó…</string>
 </resources>

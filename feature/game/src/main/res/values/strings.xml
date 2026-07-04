@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Default (English) strings for the game feature. -->
 <resources>
-    <string name="game_hud_level">Level %1$d</string>
-    <string name="game_hud_turn">Turn %1$d</string>
+    <string name="game_hud_level">Level %1$d/%2$d</string>
+    <string name="game_hud_score">Points: %1$d</string>
     <string name="game_action_wait">Wait</string>
     <string name="game_action_restart">Restart</string>
+
+    <string name="ability_howl">Howl</string>
+    <string name="ability_leap">Leap</string>
+    <string name="ability_protect">Shield</string>
+
+    <string name="run_completed">Run complete! %1$d pts</string>
+    <string name="run_failed">The night claimed you… %1$d pts</string>
+
     <string name="game_status_won">The traveler is safe!</string>
     <string name="game_status_lost">The night claimed you…</string>
 </resources>

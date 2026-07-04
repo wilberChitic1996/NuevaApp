@@ -1,91 +1,93 @@
 package gt.guardian.cadejo.feature.game
 
 import app.cash.turbine.test
-import gt.guardian.cadejo.domain.model.GameStatus
+import gt.guardian.cadejo.domain.model.AbilityId
+import gt.guardian.cadejo.domain.run.RunStatus
 import gt.guardian.cadejo.domain.session.SeedSource
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class GameViewModelTest {
 
-    // Fixed seed => deterministic starting board, so assertions are stable.
-    private fun viewModel(seed: Long = 777L) =
-        GameViewModel(SeedSource { seed })
+    // Fixed seed => deterministic starting run, so assertions are stable.
+    private fun viewModel(seed: Long = 777L) = GameViewModel(SeedSource { seed })
 
     @Test
-    fun `starts on a playing state at level one`() = runTest {
+    fun `starts running on level one`() = runTest {
         val vm = viewModel()
-        vm.state.test {
+        vm.uiState.test {
             val initial = awaitItem()
-            assertEquals(GameStatus.PLAYING, initial.status)
-            assertEquals(1, initial.level)
-            assertEquals(0, initial.turn)
+            assertEquals(RunStatus.RUNNING, initial.run.status)
+            assertEquals(1, initial.run.levelIndex)
+            assertEquals(0, initial.run.current.turn)
+            assertFalse(initial.leapArming)
             cancelAndConsumeRemainingEvents()
         }
     }
 
     @Test
-    fun `a legal move emits a new state with an advanced turn`() = runTest {
+    fun `a legal move advances the turn`() = runTest {
         val vm = viewModel()
-        vm.state.test {
+        vm.uiState.test {
             val initial = awaitItem()
-            val destination = initial.legalMoves().first()
+            val destination = initial.run.current.legalMoves().first()
 
             vm.onHexTap(destination)
 
             val next = awaitItem()
-            assertEquals(destination, next.player)
-            assertEquals(1, next.turn)
+            assertEquals(destination, next.run.current.player)
+            assertEquals(1, next.run.current.turn)
             cancelAndConsumeRemainingEvents()
         }
     }
 
     @Test
-    fun `waiting advances the turn and moves enemies`() = runTest {
+    fun `arming leap highlights destinations and consumes the next tap`() = runTest {
         val vm = viewModel()
-        vm.state.test {
-            val initial = awaitItem()
-            val enemyBefore = initial.enemies.first().position
-
-            vm.onWait()
-
-            val next = awaitItem()
-            assertEquals(1, next.turn)
-            // The chaser should have closed distance (it isn't already adjacent-blocked).
-            assertTrue(next.enemies.first().position != enemyBefore || next.isOver)
-            cancelAndConsumeRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `restart produces a fresh playing state`() = runTest {
-        val vm = viewModel()
-        vm.state.test {
+        vm.uiState.test {
             awaitItem() // initial
-            vm.onWait()
-            awaitItem() // after wait
 
+            vm.onToggleLeap()
+            val armed = awaitItem()
+            assertTrue(armed.leapArming)
+            assertTrue(armed.highlight.isNotEmpty())
+
+            val leapTarget = armed.highlight.first()
+            vm.onHexTap(leapTarget)
+            val afterLeap = awaitItem()
+            assertFalse(afterLeap.leapArming)
+            assertEquals(leapTarget, afterLeap.run.current.player)
+            assertTrue(afterLeap.run.current.ability(AbilityId.LEAP)!!.remaining > 0)
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `restart produces a fresh running run`() = runTest {
+        val vm = viewModel()
+        vm.uiState.test {
+            awaitItem()
+            vm.onWait()
+            awaitItem()
             vm.onRestart()
             val restarted = awaitItem()
-            assertEquals(GameStatus.PLAYING, restarted.status)
-            assertEquals(0, restarted.turn)
+            assertEquals(RunStatus.RUNNING, restarted.run.status)
+            assertEquals(0, restarted.run.current.turn)
             cancelAndConsumeRemainingEvents()
         }
     }
 
     @Test
-    fun `taps are ignored once the game is over`() = runTest {
-        // Same fixed seed each run: drive it to a terminal state by waiting, then
-        // confirm further input is a no-op.
+    fun `input is ignored once the run is over`() = runTest {
         val vm = viewModel()
-        // Wait until the chaser catches a stationary Cadejo (bounded loop).
-        repeat(30) { if (!vm.state.value.isOver) vm.onWait() }
-        val terminal = vm.state.value
-        assertTrue("expected the run to end when standing still", terminal.isOver)
+        repeat(80) { if (!vm.uiState.value.run.isOver) vm.onWait() }
+        val terminal = vm.uiState.value
+        assertTrue("standing still should end the run", terminal.run.isOver)
 
-        vm.onHexTap(terminal.legalMoves().firstOrNull() ?: terminal.player)
-        assertEquals(terminal, vm.state.value)
+        vm.onWait()
+        assertEquals(terminal, vm.uiState.value)
     }
 }
